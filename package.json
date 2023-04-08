@@ -1,0 +1,32 @@
+{
+  "name": "pickleparser",
+  "version": "0.0.1",
+  "description": "A Pickle Parser",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c rollup.config.js --bundleConfigAsCjs --failAfterWarnings"
+  },
+  "keywords": [
+    "pickle",
+    "parser",
+    "python"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ewfian/pickleparser.git"
+  },
+  "author": "ewfian",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^11.1.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.1",
+    "@typescript-eslint/parser": "^5.57.1",
+    "eslint": "^8.38.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.7",
+    "rollup": "^3.20.2",
+    "typescript": "^5.0.4"
+  }
+}
