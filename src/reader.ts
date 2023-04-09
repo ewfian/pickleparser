@@ -88,4 +88,8 @@ export class Reader {
         this.skip(1);
         return text;
     }
+
+    hasNext() {
+        return this.position < this.length;
+    }
 }

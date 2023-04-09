@@ -4,5 +4,7 @@ import pkg from './package.json';
 export default {
     input: 'src/index.ts',
     output: [{ file: pkg.main, name: pkg.name, format: 'umd', sourcemap: true }],
-    plugins: [typescript()],
+    plugins: [typescript({
+        compilerOptions: { declaration: true, declarationDir: './types' }
+      }),],
 };

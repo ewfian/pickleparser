@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "A pure Javascript implemented parser for Python pickle format",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "rollup -c rollup.config.js --bundleConfigAsCjs --failAfterWarnings"
   },
