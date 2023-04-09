@@ -1,5 +1,5 @@
-import { world } from './tt';
+import { BINGET } from './opcode';
 
 export function hello() {
-    world();
+    return BINGET;
 }

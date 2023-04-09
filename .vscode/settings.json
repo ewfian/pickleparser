@@ -1,5 +1,6 @@
 {
     "typescript.tsdk": "node_modules\\typescript\\lib",
+    "typescript.preferences.quoteStyle": "single",
     "editor.suggestSelection": "first",
     "diffEditor.ignoreTrimWhitespace": true,
 }
