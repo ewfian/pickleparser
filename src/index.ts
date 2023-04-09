@@ -1,5 +1,2 @@
-import { BINGET } from './opcode';
-
-export function hello() {
-    return BINGET;
-}
+export { Parser } from './parser';
+export { Reader } from './reader';
