@@ -73,7 +73,7 @@ export class Reader {
         }
     }
 
-    string(size: number, encoding: string) {
+    string(size: number, encoding: Encoding) {
         const data = this.bytes(size);
         return encoding == 'utf-8' ? this._utf8Decoder.decode(data) : this._asciiDecoder.decode(data);
     }
@@ -93,3 +93,5 @@ export class Reader {
         return this.position < this.length;
     }
 }
+
+export type Encoding = 'ascii' | 'utf-8';

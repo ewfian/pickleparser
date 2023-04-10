@@ -6,7 +6,8 @@ async function unpickle(fname) {
     const pkl = await fs.readFile(path.join(fname), 'binary');
     const buffer = Buffer.from(pkl, 'binary');
     const parser = new Parser(buffer);
-    parser.load();
+    const obj = parser.load();
+    console.log(obj);
 }
 
 unpickle('index.pkl');
