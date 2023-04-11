@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { OP } from './opcode';
 import { Reader } from './reader';
+import { Registry } from './registry';
 
 export class Parser {
     private _reader: Reader;
+
+    registry: Registry = new Registry();
 
     constructor(buffer: Uint8Array | Int8Array | Uint8ClampedArray) {
         this._reader = new Reader(buffer);
@@ -39,7 +42,7 @@ export class Parser {
                     const module = stack.pop();
                     const cls = this.resolveClass(module, name);
                     if (cls === undefined) {
-                        throw new Error(`Cannot resolve: ${module} ${name}`);
+                        throw new Error(`Cannot resolve: ${module}.${name}`);
                     }
                     stack.push(cls);
                     break;
@@ -323,20 +326,11 @@ export class Parser {
         return number;
     }
 
-    resolveClass(module: string, name: string): new (...args: any[]) => any {
-        const cls = `${module}.${name}`;
-        console.log('*******resolveClass: ', cls);
-        return Dummy;
+    resolveClass(module: string, name: string): (new (...args: any[]) => any) | undefined {
+        return this.registry.resolve(module, name);
     }
 
     newObject(cls: new (...args: any[]) => any, ...args: any[]) {
-        // console.log('*******newObject: ', cls, args);
         return new cls(args);
-    }
-}
-
-class Dummy extends Map {
-    __dict__(key: string, value: any) {
-        this.set(key, value);
     }
 }
