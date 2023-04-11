@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as OP from './opcode';
+import { OP } from './opcode';
 import { Reader } from './reader';
 
 export class Parser {
@@ -16,7 +16,7 @@ export class Parser {
         const memo = new Map();
         while (reader.hasNext()) {
             const opcode = reader.byte();
-            // console.log(`${(reader.position - 1).toString()} ${opcode} ${this.getOPName(opcode)}`);
+            // console.log(`${(reader.position - 1).toString()} ${opcode}`);
             switch (opcode) {
                 case OP.PROTO: {
                     const version = reader.byte();
@@ -176,11 +176,6 @@ export class Parser {
     newObject(cls: new (...args: any[]) => any, ...args: any[]) {
         // console.log('*******newObject: ', cls, args);
         return new cls(args);
-    }
-
-    // Just for debug
-    getOPName(opcode: number) {
-        return Object.entries(OP).find((x) => x[1] === opcode)?.[0];
     }
 }
 
