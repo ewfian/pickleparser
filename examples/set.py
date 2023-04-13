@@ -1,18 +1,20 @@
 import pickle
 
 class MyClass:
-    def __init__(self):
+    def __init__(self, s):
         self.data = "test"
-        self.set = set([1, 2, 3])
+        self.set = s
         self.fruits = ['apple', 'banana', 'cherry']
 
-me = MyClass()
-me.set.add('abc')
-me.set.add(9007199254740991)
-me.set.add(4294967295)
-me.set.add(True)
-me.set.add(False)
-me.set.add(None)
+s= set([1, 2, 3])
+s.add('abc')
+s.add(9007199254740991)
+s.add(4294967295)
+s.add(True)
+s.add(False)
+s.add(None)
+
+me = MyClass(s)
 me.fruits.append("orange")
 
 filehandler = open(b"index.pkl", "wb")

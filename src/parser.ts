@@ -41,9 +41,6 @@ export class Parser {
                     const name = stack.pop();
                     const module = stack.pop();
                     const cls = this.resolveClass(module, name);
-                    if (cls === undefined) {
-                        throw new Error(`Cannot resolve: ${module}.${name}`);
-                    }
                     stack.push(cls);
                     break;
                 }
@@ -51,9 +48,7 @@ export class Parser {
                     const module = reader.line();
                     const name = reader.line();
                     const cls = this.resolveClass(module, name);
-                    if (cls === undefined) {
-                        throw new Error(`Cannot resolve: ${module} ${name}`);
-                    }
+                    stack.push(cls);
                     break;
                 }
                 case OP.EMPTY_TUPLE:
@@ -62,7 +57,7 @@ export class Parser {
                 case OP.NEWOBJ: {
                     const args = stack.pop();
                     const cls = stack.pop();
-                    const obj = this.newObject(cls, args);
+                    const obj = this.newObject(cls, ...args);
                     stack.push(obj);
                     break;
                 }
@@ -292,7 +287,7 @@ export class Parser {
                 default:
                     // console.log('metastack:', metastack, '\nstack:', stack);
                     // console.log('\nmemo:', Array.from(memo.entries()));
-                    throw new Error(`Unknown opcode '${opcode}'.`);
+                    throw new Error(`Unsupported opcode '${opcode}'.`);
             }
         }
         throw new Error('Unexpected end of file.');
@@ -326,11 +321,11 @@ export class Parser {
         return number;
     }
 
-    resolveClass(module: string, name: string): (new (...args: any[]) => any) | undefined {
+    resolveClass(module: string, name: string): new (...args: any[]) => any {
         return this.registry.resolve(module, name);
     }
 
     newObject(cls: new (...args: any[]) => any, ...args: any[]) {
-        return new cls(args);
+        return new cls(...args);
     }
 }

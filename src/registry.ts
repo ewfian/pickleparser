@@ -7,12 +7,26 @@ export class Registry extends Map<string, new (...args: any[]) => any> {
         }
         this.set(id, cls);
     }
-    resolve(module: string, name: string): (new (...args: any[]) => any) | undefined {
+    resolve(module: string, name: string): new (...args: any[]) => any {
         const id = this.getIdentity(name, module);
-        return this.get(id);
+        return this.get(id) || this.createNewPObject(module, name);
     }
 
     private getIdentity(module: string, name: string) {
         return module + '.' + name;
+    }
+
+    private createNewPObject(module: string, name: string): new (...args: any[]) => any {
+        const PObject = function (this: any, ...args: any[]): any {
+            Object.defineProperty(this, 'args', {
+                value: args,
+                enumerable: false,
+                configurable: false,
+                writable: false,
+            });
+        } as unknown as new (...args: any[]) => any;
+        PObject.prototype.module = module;
+        PObject.prototype.name = name;
+        return PObject;
     }
 }
