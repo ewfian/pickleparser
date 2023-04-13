@@ -26,3 +26,8 @@ async function unpickle(fname) {
 
 unpickle('index.pkl');
 ```
+
+Also provided a tool to convert pickle file to JSON
+```bash
+npx pickletojson file.pkl file.json
+```

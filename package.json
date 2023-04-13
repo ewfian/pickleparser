@@ -7,6 +7,10 @@
   "scripts": {
     "build": "rollup -c rollup.config.js --bundleConfigAsCjs --failAfterWarnings"
   },
+  "bin": {
+    "pickletojson": "./bin/pickletojson.js",
+    "pickleparser": "./bin/pickletojson.js"
+  },
   "keywords": [
     "pickle",
     "parser",
