@@ -1,7 +1,27 @@
 # Pickle Parser
-A pure Javascript implemented parser for [Python pickle format](https://docs.python.org/3.11/library/pickle.html)
+[![NPM Version](https://img.shields.io/npm/v/pickleparser?logo=npm)](https://www.npmjs.com/package/pickleparser)
+[![License](https://img.shields.io/github/license/ewfian/pickleparser)](https://github.com/ewfian/pickleparser)
 
-# Usage
+A pure Typescript implemented parser for [Python pickle format](https://docs.python.org/3.11/library/pickle.html)
+
+
+## Features
+
+* Pure Typescript implemented.
+* Most of [Pickle protocol version 4](https://peps.python.org/pep-3154/) opcodes supported.
+* Supports Browser.
+* Supports Node.js.
+* Provides tool to convert pickle file to JSON.
+
+## Installation
+
+```sh
+$ npm install pickleparser
+```
+
+## Usage
+
+### Node.js
 ```ts
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -13,7 +33,6 @@ async function unpickle(fname) {
     const pkl = await fs.readFile(path.join(fname), 'binary');
     const buffer = Buffer.from(pkl, 'binary');
     const parser = new Parser(buffer);
-    parser.registry.register('__main__', 'MyClass', MyClass);
     const obj = parser.load();
     console.log(obj);
 // => 
@@ -27,7 +46,39 @@ async function unpickle(fname) {
 unpickle('index.pkl');
 ```
 
-Also provided a tool to convert pickle file to JSON
-```bash
-npx pickletojson file.pkl file.json
+
+### Browser
+
+```js
+const fileSelector = document.getElementById('file_selector');
+const jsonResultPreviewer = document.getElementById('json_result_previewer');
+
+fileSelector.addEventListener('change', function (e) {
+    const file = fileSelector.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function (event) {
+        const buffer = new Uint8Array(event.target.result);
+        const parser = new pickleparser.Parser(buffer);
+        const obj = parser.load();
+        const json = JSON.stringify(obj, null, 4);
+        jsonResultPreviewer.innerText = json;
+    }
+
+    reader.readAsArrayBuffer(file);
+});
 ```
+
+### Terminal
+
+```bash
+npx pickleparser file.pkl file.json
+# or
+npm i pickleparser -g
+pickletojson file.pkl file.json
+```
+
+
+## License
+
+MIT

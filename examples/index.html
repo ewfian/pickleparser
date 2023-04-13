@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pickle Parser Demo</title>
+</head>
+
+<body>
+    <section>
+        <h1>Pickle Parser Demo</h1>
+        <div>
+            <span>Select a pickle file: </span>
+            <input type="file" id="file_selector">
+        </div>
+        <pre id="json_result_previewer"><pre>
+    </section>
+    <script src="https://unpkg.com/pickleparser/dist/index.js"></script>
+    <script>
+        const fileSelector = document.getElementById('file_selector');
+        const jsonResultPreviewer = document.getElementById('json_result_previewer');
+
+        fileSelector.addEventListener('change', function (e) {
+            const file = fileSelector.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                const buffer = new Uint8Array(event.target.result);
+                const parser = new pickleparser.Parser(buffer);
+                const obj = parser.load();
+                const json = JSON.stringify(obj, null, 4);
+                jsonResultPreviewer.innerText = json;
+            }
+
+            reader.readAsArrayBuffer(file);
+        });
+    </script>
+</body>
+</html>
