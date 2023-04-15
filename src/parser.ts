@@ -5,11 +5,17 @@ import { Registry } from './registry';
 
 export class Parser {
     private _reader: Reader;
+    public persistent_load: (pid: string) => any;
 
     registry: Registry = new Registry();
 
-    constructor(buffer: Uint8Array | Int8Array | Uint8ClampedArray) {
+    constructor(buffer: Uint8Array | Int8Array | Uint8ClampedArray, persistent_load?: (pid: string) => any) {
         this._reader = new Reader(buffer);
+        this.persistent_load =
+            persistent_load ||
+            ((pid: string) => {
+                throw new Error(`Unsupported persistent id: \`${pid}\`.`);
+            });
     }
 
     load() {
@@ -20,6 +26,8 @@ export class Parser {
         while (reader.hasNext()) {
             const opcode = reader.byte();
             // console.log(`${(reader.position - 1).toString()} ${opcode}`);
+            // console.log('metastack:', metastack, '\nstack:', stack);
+            // console.log('\nmemo:', Array.from(memo.entries()));
             switch (opcode) {
                 // Structural
                 case OP.PROTO: {
@@ -296,6 +304,12 @@ export class Parser {
                     stack.push(obj);
                     break;
                 }
+                case OP.PERSID:
+                    stack.push(this.persistent_load(reader.line()));
+                    break;
+                case OP.BINPERSID:
+                    stack.push(this.persistent_load(stack.pop()));
+                    break;
                 case OP.BUILD: {
                     const state = stack.pop();
                     const obj = stack[stack.length - 1];
@@ -318,8 +332,6 @@ export class Parser {
                 }
 
                 default:
-                    // console.log('metastack:', metastack, '\nstack:', stack);
-                    // console.log('\nmemo:', Array.from(memo.entries()));
                     throw new Error(`Unsupported opcode '${opcode}'.`);
             }
         }
