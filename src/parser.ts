@@ -297,6 +297,24 @@ export class Parser {
                 }
 
                 // Classes
+                case OP.INST: {
+                    const module = reader.line();
+                    const name = reader.line();
+                    const args = stack;
+                    stack = metastack.pop();
+                    const cls = this.resolveClass(module, name);
+                    const obj = this.newObject(cls, ...args);
+                    stack.push(obj);
+                    break;
+                }
+                case OP.OBJ: {
+                    const args = stack;
+                    const cls = args.pop();
+                    stack = metastack.pop();
+                    const obj = this.newObject(cls, ...args);
+                    stack.push(obj);
+                    break;
+                }
                 case OP.NEWOBJ: {
                     const args = stack.pop();
                     const cls = stack.pop();
@@ -310,6 +328,12 @@ export class Parser {
                 case OP.BINPERSID:
                     stack.push(this.persistent_load(stack.pop()));
                     break;
+                case OP.REDUCE: {
+                    const args = stack.pop();
+                    const func = stack.pop();
+                    stack.push(this.newObject(func, ...args));
+                    break;
+                }
                 case OP.BUILD: {
                     const state = stack.pop();
                     const obj = stack[stack.length - 1];
