@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pickle Parser Demo</title>
+    <title>[Online] Pickle to JSON</title>
 </head>
 
 <body>
@@ -27,12 +27,17 @@
             const reader = new FileReader();
 
             reader.onload = function (event) {
-                const buffer = new Uint8Array(event.target.result);
-                const parser = new pickleparser.Parser(buffer);
-                const obj = parser.load();
-                const replacer = (_, value) => (typeof value === 'bigint' ? value.toString() : value);
-                const json = JSON.stringify(obj, replacer, 4);
-                jsonResultPreviewer.innerText = json;
+                try {
+                    const buffer = new Uint8Array(event.target.result);
+                    const parser = new pickleparser.Parser(buffer);
+                    const obj = parser.load();
+                    const replacer = (_, value) => (typeof value === 'bigint' ? value.toString() : value);
+                    const json = JSON.stringify(obj, replacer, 4);
+                    jsonResultPreviewer.innerText = json;
+                } catch (error) {
+                    jsonResultPreviewer.innerText = error;
+                }
+
             }
 
             reader.readAsArrayBuffer(file);
