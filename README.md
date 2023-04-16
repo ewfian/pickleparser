@@ -1,5 +1,6 @@
 # Pickle Parser
 [![NPM Version](https://img.shields.io/npm/v/pickleparser?logo=npm)](https://www.npmjs.com/package/pickleparser)
+[![Unit Test](https://github.com/ewfian/pickleparser/actions/workflows/unit_test.yml/badge.svg)](https://github.com/ewfian/pickleparser/actions/workflows/unit_test.yml)
 [![Demo](https://img.shields.io/badge/online-demo-blue.svg)](https://ewfian.github.io/pickleparser/)
 [![License](https://img.shields.io/github/license/ewfian/pickleparser)](https://github.com/ewfian/pickleparser)
 
