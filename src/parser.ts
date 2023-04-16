@@ -96,7 +96,7 @@ export class Parser {
                     stack.push(memo.get(reader.uint32()));
                     break;
 
-                // Literal
+                // Primitive
                 case OP.NONE:
                     stack.push(null);
                     break;
@@ -158,8 +158,13 @@ export class Parser {
                     stack.push(number);
                     break;
                 }
-                // case OP.LONG4:
-                //     break;
+                case OP.LONG4: {
+                    const length = reader.uint32();
+                    const data = reader.bytes(length);
+                    const number = this.readUint64WithBigInt(data);
+                    stack.push(number);
+                    break;
+                }
                 case OP.BINFLOAT:
                     stack.push(reader.float64());
                     break;
@@ -439,6 +444,25 @@ export class Parser {
         // new Uint8Array([0x00, 0x00, 0x00, 0x00,  0x00, 0x01, 0x00, 0x00]) => 1099511627776,
         // new Uint8Array([0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x01, 0x00]) => 281474976710656,
         // new Uint8Array([0xff, 0xff, 0xff, 0xff,  0xff, 0xff, 0x1f, 0x00]) => 9007199254740991, // maximum precision
+        return number;
+    }
+
+    readUint64WithBigInt(data: Uint8Array | Int8Array | Uint8ClampedArray) {
+        let fixedLength = 0;
+        let partCount = 0;
+        while (fixedLength < data.length) {
+            fixedLength += 4;
+            partCount += 1;
+        }
+        const buffer = new ArrayBuffer(fixedLength);
+        const uint8 = new Uint8Array(buffer);
+        uint8.set(data);
+        const view = new DataView(buffer, 0, fixedLength);
+        let number = BigInt(0);
+        for (let partIndex = 0; partIndex < partCount; partIndex++) {
+            const part = BigInt(view.getUint32(partIndex * 4, true));
+            number |= part << BigInt(partIndex * 32);
+        }
         return number;
     }
 

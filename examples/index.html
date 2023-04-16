@@ -30,7 +30,8 @@
                 const buffer = new Uint8Array(event.target.result);
                 const parser = new pickleparser.Parser(buffer);
                 const obj = parser.load();
-                const json = JSON.stringify(obj, null, 4);
+                const replacer = (_, value) => (typeof value === 'bigint' ? value.toString() : value);
+                const json = JSON.stringify(obj, replacer, 4);
                 jsonResultPreviewer.innerText = json;
             }
 
