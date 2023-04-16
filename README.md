@@ -1,5 +1,6 @@
 # Pickle Parser
 [![NPM Version](https://img.shields.io/npm/v/pickleparser?logo=npm)](https://www.npmjs.com/package/pickleparser)
+[![Demo](https://img.shields.io/badge/online-demo-blue.svg)](https://ewfian.github.io/pickleparser/)
 [![License](https://img.shields.io/github/license/ewfian/pickleparser)](https://github.com/ewfian/pickleparser)
 
 A pure Javascript implemented parser for [Python pickle format](https://docs.python.org/3.11/library/pickle.html)
@@ -22,6 +23,9 @@ A pure Javascript implemented parser for [Python pickle format](https://docs.pyt
 * [Pickle protocol version 4 (Python 3.4)](https://peps.python.org/pep-3154/)
 
 For more details, See: [Supported Opcodes](./SUPPORTED_OPCODES.md)
+
+## Online Demo
+[Pickle Parser Demo](https://ewfian.github.io/pickleparser/)
 
 ## Installation
 
