@@ -13,6 +13,9 @@ A pure Typescript implemented parser for [Python pickle format](https://docs.pyt
 * Supports Node.js.
 * Provides tool to convert pickle file to JSON.
 
+## Supported Opcodes
+See: [Supported Opcodes](./SUPPORTED_OPCODES.md)
+
 ## Installation
 
 ```sh
