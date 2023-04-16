@@ -27,6 +27,14 @@ export class Registry extends Map<string, new (...args: any[]) => any> {
         } as unknown as new (...args: any[]) => any;
         PObject.prototype.module = module;
         PObject.prototype.name = name;
+        PObject.prototype.__setnewargs_ex__ = function (kwargs: any) {
+            Object.defineProperty(this, 'kwargs', {
+                value: kwargs,
+                enumerable: false,
+                configurable: false,
+                writable: false,
+            });
+        };
         return PObject;
     }
 }

@@ -322,6 +322,17 @@ export class Parser {
                     stack.push(obj);
                     break;
                 }
+                case OP.NEWOBJ_EX: {
+                    const kwargs = stack.pop();
+                    const args = stack.pop();
+                    const cls = stack.pop();
+                    const obj = this.newObject(cls, ...args);
+                    if (obj.__setnewargs_ex__) {
+                        obj.__setnewargs_ex__(kwargs);
+                    }
+                    stack.push(obj);
+                    break;
+                }
                 case OP.PERSID:
                     stack.push(this.persistent_load(reader.line()));
                     break;
