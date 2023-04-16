@@ -128,9 +128,14 @@ export class Parser {
 
                 // ASCII-formatted strings
                 case OP.STRING: {
-                    const str = reader.line();
-                    stack.push(str.substr(1, str.length - 2));
-                    break;
+                    const data = reader.line();
+                    // https://github.com/python/cpython/blob/4fe1c4b97e39429abbb9c2117fe40f585de00887/Lib/pickle.py#L1326
+                    if (data.length >= 2 && data[0] == data.slice(-1) && ['"', "'"].includes(data[0])) {
+                        stack.push(data.slice(1, -1));
+                        break;
+                    } else {
+                        throw new Error('Insecure string pickle.');
+                    }
                 }
                 case OP.UNICODE:
                     stack.push(reader.line());
