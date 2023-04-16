@@ -50,6 +50,27 @@ export class Reader {
         return this._dataView.getUint32(position, true);
     }
 
+    uint64() {
+        const position = this.position;
+        this.skip(8);
+        // split 64-bit number into two 32-bit parts
+        const left = this._dataView.getUint32(position, true);
+        const right = this._dataView.getUint32(position + 4, true);
+        // combine the two 32-bit values
+        const number = left + 2 ** 32 * right;
+        if (!Number.isSafeInteger(number)) {
+            console.warn(number, 'exceeds MAX_SAFE_INTEGER. Precision may be lost');
+        }
+        // new Uint8Array([0xff, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00]) => 255,
+        // new Uint8Array([0xff, 0xff, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00]) => 65535,
+        // new Uint8Array([0xff, 0xff, 0xff, 0xff,  0x00, 0x00, 0x00, 0x00]) => 4294967295,
+        // new Uint8Array([0x00, 0x00, 0x00, 0x00,  0x01, 0x00, 0x00, 0x00]) => 4294967296,
+        // new Uint8Array([0x00, 0x00, 0x00, 0x00,  0x00, 0x01, 0x00, 0x00]) => 1099511627776,
+        // new Uint8Array([0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x01, 0x00]) => 281474976710656,
+        // new Uint8Array([0xff, 0xff, 0xff, 0xff,  0xff, 0xff, 0x1f, 0x00]) => 9007199254740991, // maximum precision
+        return number;
+    }
+
     float32() {
         const position = this.position;
         this.skip(4);

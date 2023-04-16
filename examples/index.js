@@ -22,12 +22,11 @@ async function unpickle(fname) {
     parser.registry.register('pathlib', 'PosixPath', PosixPath);
     const obj = parser.load();
     console.log(obj);
-    // =>
-    // PObject {
-    //   data: 'test',
-    //   set: [ false, 1, 2, 3, null, 'abc', 4294967295, 9007199254740991 ],
-    //   fruits: [ 'apple', 'banana', 'cherry', 'orange' ]
-    // }
+    const codePoints = Array.from(obj)
+        .map((v) => v.codePointAt(0).toString(16))
+        .map((hex) => '\\u' + hex.padStart(4, 0) + '')
+        .join('');
+    console.log(codePoints);
 }
 
-unpickle('long4.pkl');
+unpickle('u8.pkl');

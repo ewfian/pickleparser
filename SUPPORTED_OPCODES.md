@@ -58,8 +58,8 @@
 |  BINBYTES           |  B      |  66    |  ✅        |  Protocol 3   |
 |  SHORT_BINBYTES     |  C      |  67    |  ✅        |  Protocol 3   |
 |  SHORT_BINUNICODE   |  \x8c   |  140   |  ✅        |  Protocol 4   |
-|  BINUNICODE8        |  \x8d   |  141   |  ❌        |  Protocol 4   |
-|  BINBYTES8          |  \x8e   |  142   |  ❌        |  Protocol 4   |
+|  BINUNICODE8        |  \x8d   |  141   |  ✅        |  Protocol 4   |
+|  BINBYTES8          |  \x8e   |  142   |  ✅        |  Protocol 4   |
 |  EMPTY_SET          |  \x8f   |  143   |  ✅        |  Protocol 4   |
 |  ADDITEMS           |  \x90   |  144   |  ✅        |  Protocol 4   |
 |  FROZENSET          |  \x91   |  145   |  ✅        |  Protocol 4   |

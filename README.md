@@ -2,19 +2,26 @@
 [![NPM Version](https://img.shields.io/npm/v/pickleparser?logo=npm)](https://www.npmjs.com/package/pickleparser)
 [![License](https://img.shields.io/github/license/ewfian/pickleparser)](https://github.com/ewfian/pickleparser)
 
-A pure Typescript implemented parser for [Python pickle format](https://docs.python.org/3.11/library/pickle.html)
+A pure Javascript implemented parser for [Python pickle format](https://docs.python.org/3.11/library/pickle.html)
 
 
 ## Features
 
 * Pure Typescript implemented.
-* Most of [Pickle protocol version 4](https://peps.python.org/pep-3154/) opcodes supported.
+* Fullly supports [Pickle protocol version 4](https://peps.python.org/pep-3154/) opcodes.
 * Supports Browser.
 * Supports Node.js.
 * Provides tool to convert pickle file to JSON.
 
-## Supported Opcodes
-See: [Supported Opcodes](./SUPPORTED_OPCODES.md)
+## Supported Protocol Version
+
+* Pickle protocol version 0
+* Pickle protocol version 1
+* [Pickle protocol version 2 (Python 2.3)](https://peps.python.org/pep-0307/)
+* Pickle protocol version 3 (Python 3.0)
+* [Pickle protocol version 4 (Python 3.4)](https://peps.python.org/pep-3154/)
+
+For more details, See: [Supported Opcodes](./SUPPORTED_OPCODES.md)
 
 ## Installation
 

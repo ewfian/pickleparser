@@ -176,6 +176,10 @@ export class Parser {
                 case OP.SHORT_BINBYTES:
                     stack.push(reader.bytes(reader.byte()));
                     break;
+                case OP.BINBYTES8: {
+                    stack.push(reader.bytes(reader.uint64()));
+                    break;
+                }
                 case OP.BINSTRING:
                     stack.push(reader.string(reader.uint32(), 'ascii'));
                     break;
@@ -187,6 +191,9 @@ export class Parser {
                     break;
                 case OP.SHORT_BINUNICODE:
                     stack.push(reader.string(reader.byte(), 'utf-8'));
+                    break;
+                case OP.BINUNICODE8:
+                    stack.push(reader.string(reader.uint64(), 'utf-8'));
                     break;
 
                 // Tuples
@@ -427,23 +434,8 @@ export class Parser {
         const buffer = new ArrayBuffer(8);
         const uint8 = new Uint8Array(buffer);
         uint8.set(data);
-        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView#64-bit_integer_values
-        const view = new DataView(buffer, 0, 8);
-        // split 64-bit number into two 32-bit parts
-        const left = view.getUint32(0, true);
-        const right = view.getUint32(4, true);
-        // combine the two 32-bit values
-        const number = left + 2 ** 32 * right;
-        if (!Number.isSafeInteger(number)) {
-            console.warn(number, 'exceeds MAX_SAFE_INTEGER. Precision may be lost');
-        }
-        // new Uint8Array([0xff, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00]) => 255,
-        // new Uint8Array([0xff, 0xff, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00]) => 65535,
-        // new Uint8Array([0xff, 0xff, 0xff, 0xff,  0x00, 0x00, 0x00, 0x00]) => 4294967295,
-        // new Uint8Array([0x00, 0x00, 0x00, 0x00,  0x01, 0x00, 0x00, 0x00]) => 4294967296,
-        // new Uint8Array([0x00, 0x00, 0x00, 0x00,  0x00, 0x01, 0x00, 0x00]) => 1099511627776,
-        // new Uint8Array([0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x01, 0x00]) => 281474976710656,
-        // new Uint8Array([0xff, 0xff, 0xff, 0xff,  0xff, 0xff, 0x1f, 0x00]) => 9007199254740991, // maximum precision
+        const subReader = new Reader(uint8);
+        const number = subReader.uint64();
         return number;
     }
 
