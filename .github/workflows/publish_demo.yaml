@@ -1,4 +1,4 @@
-name: Deploy Documentation to Pages
+name: Deploy Demo to Pages
 
 on:
   # Runs on pushes targeting the default branch
