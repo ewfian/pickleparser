@@ -3,19 +3,29 @@ import { OP } from './opcode';
 import { Reader } from './reader';
 import { Registry } from './registry';
 
+export interface ParserOptions {
+    onPersistentLoad: (pid: string) => any;
+    onExtensionLoad: (extCode: number) => any;
+}
+
+const DefualtParserOptions: ParserOptions = {
+    onPersistentLoad(pid) {
+        throw new Error(`Unregistered persistent id: \`${pid}\`.`);
+    },
+    onExtensionLoad(extCode) {
+        throw new Error(`Unregistered extension code: \`${extCode.toString(16)}\`.`);
+    },
+};
+
 export class Parser {
     private _reader: Reader;
-    public persistent_load: (pid: string) => any;
 
+    options: ParserOptions;
     registry: Registry = new Registry();
 
-    constructor(buffer: Uint8Array | Int8Array | Uint8ClampedArray, persistent_load?: (pid: string) => any) {
+    constructor(buffer: Uint8Array | Int8Array | Uint8ClampedArray, options: ParserOptions = DefualtParserOptions) {
         this._reader = new Reader(buffer);
-        this.persistent_load =
-            persistent_load ||
-            ((pid: string) => {
-                throw new Error(`Unsupported persistent id: \`${pid}\`.`);
-            });
+        this.options = options;
     }
 
     load() {
@@ -280,6 +290,26 @@ export class Parser {
                     break;
                 }
 
+                // Exts
+                case OP.EXT1: {
+                    const extCode = reader.byte();
+                    const cls = this.options.onExtensionLoad(extCode);
+                    stack.push(cls);
+                    break;
+                }
+                case OP.EXT2: {
+                    const extCode = reader.uint16();
+                    const cls = this.options.onExtensionLoad(extCode);
+                    stack.push(cls);
+                    break;
+                }
+                case OP.EXT4: {
+                    const extCode = reader.uint32();
+                    const cls = this.options.onExtensionLoad(extCode);
+                    stack.push(cls);
+                    break;
+                }
+
                 //  Module globals
                 case OP.GLOBAL: {
                     const module = reader.line();
@@ -333,12 +363,18 @@ export class Parser {
                     stack.push(obj);
                     break;
                 }
-                case OP.PERSID:
-                    stack.push(this.persistent_load(reader.line()));
+                case OP.PERSID: {
+                    const pid = reader.line();
+                    const cls = this.options.onPersistentLoad(pid);
+                    stack.push(cls);
                     break;
-                case OP.BINPERSID:
-                    stack.push(this.persistent_load(stack.pop()));
+                }
+                case OP.BINPERSID: {
+                    const pid = stack.pop();
+                    const cls = this.options.onPersistentLoad(pid);
+                    stack.push(cls);
                     break;
+                }
                 case OP.REDUCE: {
                     const args = stack.pop();
                     const func = stack.pop();
