@@ -9,7 +9,7 @@ export class Registry extends Map<string, new (...args: any[]) => any> {
     }
     resolve(module: string, name: string): new (...args: any[]) => any {
         const id = this.getIdentity(name, module);
-        return this.get(id) || this.createNewPObject(module, name);
+        return this.get(id) ?? this.createNewPObject(module, name);
     }
 
     private getIdentity(module: string, name: string) {

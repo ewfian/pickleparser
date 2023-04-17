@@ -10,7 +10,7 @@ A pure Javascript implemented parser for [Python pickle format](https://docs.pyt
 ## Features
 
 * Pure Typescript implemented.
-* Fullly supports [Pickle protocol version 4](https://peps.python.org/pep-3154/) opcodes.
+* Fully supports [Pickle protocol version 4](https://peps.python.org/pep-3154/) opcodes.
 * Supports Browser.
 * Supports Node.js.
 * Provides tool to convert pickle file to JSON.
@@ -23,7 +23,7 @@ A pure Javascript implemented parser for [Python pickle format](https://docs.pyt
 * Pickle protocol version 3 (Python 3.0)
 * [Pickle protocol version 4 (Python 3.4)](https://peps.python.org/pep-3154/)
 
-For more details, See: [Supported Opcodes](./SUPPORTED_OPCODES.md)
+For more details, see: [Supported Opcodes](./SUPPORTED_OPCODES.md)
 
 ## Online Demo
 [Pickle Parser Demo](https://ewfian.github.io/pickleparser/)
