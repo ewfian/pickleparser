@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>[Online] Pickle to JSON</title>
+    <title>Online Pickle to JSON Convertor</title>
 </head>
 
 <body>
@@ -15,6 +15,8 @@
             <span>Select a pickle file: </span>
             <input type="file" id="file_selector">
         </div>
+        <hr/>
+        <div>Tips: The converted object will be mounted as `window.obj`, which can be inspected using developer tools.</div>
         <pre id="json_result_previewer"><pre>
     </section>
     <script src="https://unpkg.com/pickleparser/dist/index.js"></script>
@@ -31,6 +33,7 @@
                     const buffer = new Uint8Array(event.target.result);
                     const parser = new pickleparser.Parser(buffer);
                     const obj = parser.load();
+                    window.obj = obj;
                     const replacer = (_, value) => (typeof value === 'bigint' ? value.toString() : value);
                     const json = JSON.stringify(obj, replacer, 4);
                     jsonResultPreviewer.innerText = json;
