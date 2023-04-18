@@ -2,30 +2,43 @@
 import { OP } from './opcode';
 import { Reader } from './reader';
 import { Registry } from './registry';
+import { ISetProvider, SetProviderFactory } from './setProvider';
+import { IDictionaryProvider, DictionaryProviderFactory } from './dictionaryProvider';
+
+export type UnpicklingTypeOfSet = 'array' | 'Set';
+export type UnpicklingTypeOfDictionary = 'object' | 'Map';
 
 export interface ParserOptions {
     onPersistentLoad: (pid: string) => any;
     onExtensionLoad: (extCode: number) => any;
+    unpicklingTypeOfSet: UnpicklingTypeOfSet;
+    unpicklingTypeOfDictionary: UnpicklingTypeOfDictionary;
 }
 
-const DefualtParserOptions: ParserOptions = {
+const DefualtOptions: ParserOptions = {
     onPersistentLoad(pid) {
         throw new Error(`Unregistered persistent id: \`${pid}\`.`);
     },
     onExtensionLoad(extCode) {
         throw new Error(`Unregistered extension code: \`${extCode.toString(16)}\`.`);
     },
+    unpicklingTypeOfSet: 'array',
+    unpicklingTypeOfDictionary: 'object',
 };
 
 export class Parser {
     private _reader: Reader;
+    private _setProvider: ISetProvider;
+    private _dictionaryProvider: IDictionaryProvider;
 
     options: ParserOptions;
     registry: Registry = new Registry();
 
-    constructor(buffer: Uint8Array | Int8Array | Uint8ClampedArray, options: ParserOptions = DefualtParserOptions) {
+    constructor(buffer: Uint8Array | Int8Array | Uint8ClampedArray, options?: ParserOptions) {
+        this.options = { ...DefualtOptions, ...options };
         this._reader = new Reader(buffer);
-        this.options = options;
+        this._setProvider = SetProviderFactory(this.options.unpicklingTypeOfSet);
+        this._dictionaryProvider = DictionaryProviderFactory(this.options.unpicklingTypeOfDictionary);
     }
 
     load() {
@@ -176,10 +189,9 @@ export class Parser {
                 case OP.SHORT_BINBYTES:
                     stack.push(reader.bytes(reader.byte()));
                     break;
-                case OP.BINBYTES8: {
+                case OP.BINBYTES8:
                     stack.push(reader.bytes(reader.uint64()));
                     break;
-                }
                 case OP.BINSTRING:
                     stack.push(reader.string(reader.uint32(), 'ascii'));
                     break;
@@ -248,13 +260,15 @@ export class Parser {
                 }
 
                 // Dicts
-                case OP.EMPTY_DICT:
-                    stack.push({});
+                case OP.EMPTY_DICT: {
+                    const dict = this._dictionaryProvider.create();
+                    stack.push(dict);
                     break;
+                }
                 case OP.DICT: {
                     const items = stack;
                     stack = metastack.pop();
-                    const dict: any = {};
+                    const dict = this._dictionaryProvider.create();
                     for (let i = 0; i < items.length; i += 2) {
                         dict[items[i]] = items[i + 1];
                     }
@@ -264,45 +278,40 @@ export class Parser {
                 case OP.SETITEM: {
                     const value = stack.pop();
                     const key = stack.pop();
-                    const obj = stack[stack.length - 1];
-                    if (obj.__setitem__) {
-                        obj.__setitem__(key, value);
-                    } else {
-                        obj[key] = value;
-                    }
+                    const dict = stack[stack.length - 1];
+                    this._dictionaryProvider.setMethod(dict, key, value);
                     break;
                 }
                 case OP.SETITEMS: {
                     const items = stack;
                     stack = metastack.pop();
-                    const obj = stack[stack.length - 1];
+                    const dict = stack[stack.length - 1];
                     // items stored as [k0, v0, ..., kn, vn]
                     for (let pos = 0; pos < items.length; pos += 2) {
-                        if (obj.__setitem__) {
-                            obj.__setitem__(items[pos], items[pos + 1]);
-                        } else {
-                            obj[items[pos]] = items[pos + 1];
-                        }
+                        this._dictionaryProvider.setMethod(dict, items[pos], items[pos + 1]);
                     }
                     break;
                 }
 
                 // Sets
-                case OP.EMPTY_SET:
-                    stack.push([]);
+                case OP.EMPTY_SET: {
+                    const set = this._setProvider.create();
+                    stack.push(set);
                     break;
+                }
                 case OP.FROZENSET: {
                     const items = stack;
                     stack = metastack.pop();
-                    stack.push(items);
+                    const set = this._setProvider.createWithItems(items);
+                    stack.push(set);
                     break;
                 }
                 case OP.ADDITEMS: {
                     const items = stack;
                     stack = metastack.pop();
-                    const obj = stack[stack.length - 1];
+                    const set = stack[stack.length - 1];
                     for (let i = 0; i < items.length; i++) {
-                        obj.push(items[i]);
+                        this._setProvider.addMethod(set, items[i]);
                     }
                     break;
                 }
@@ -403,18 +412,28 @@ export class Parser {
                     const obj = stack[stack.length - 1];
                     if (obj.__setstate__) {
                         obj.__setstate__(state);
-                    } else if (obj.__dict__) {
+                        break;
+                    }
+                    if (obj instanceof Map) {
                         // https://docs.python.org/3/library/stdtypes.html#object.__dict__
-                        for (const key in state) {
-                            if (key !== '__dict__') {
-                                obj[key] = state[key];
+                        if (state instanceof Map && state.has('__dict__')) {
+                            for (const [key, value] of state.get('__dict__')) {
+                                obj.set(key, value);
                             }
+                            break;
                         }
-                        for (const key in state.__dict__) {
-                            obj.__dict__(key, state.__dict__[key]);
+                        if (state.__dict__) {
+                            for (const key in state.__dict__) {
+                                obj.set(key, state.__dict__[key]);
+                            }
+                            break;
                         }
                     } else {
-                        Object.assign(obj, state);
+                        if (state instanceof Map) {
+                            Object.assign(obj, Object.fromEntries(state));
+                        } else {
+                            Object.assign(obj, state);
+                        }
                     }
                     break;
                 }

@@ -6,9 +6,23 @@ const { Parser } = require('../dist/index');
 const argv = process.argv;
 const pkl = fs.readFileSync(path.join(argv[2]), 'binary');
 const buffer = Buffer.from(pkl, 'binary');
-const parser = new Parser(buffer);
+const parser = new Parser(buffer, {
+    unpicklingTypeOfDictionary: 'Map',
+    unpicklingTypeOfSet: 'Set',
+});
 const obj = parser.load();
 
-const replacer = (_, value) => (typeof value === 'bigint' ? value.toString() : value);
+const replacer = (_, value) => {
+    if (value instanceof Map) {
+        return Object.fromEntries(value);
+    }
+    if (value instanceof Set) {
+        return Array.from(value);
+    }
+    if (value === 'bigint') {
+        return value.toString();
+    }
+    return value;
+};
 const json = JSON.stringify(obj, replacer);
 fs.writeFileSync(argv[3], json, 'utf8');

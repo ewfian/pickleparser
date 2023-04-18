@@ -17,7 +17,7 @@
             <span>Select a pickle file: </span>
             <input type="file" id="file_selector">
         </div>
-        <hr/>
+        <hr />
         <div>Tips: The converted object will be mounted as `window.obj`, which can be inspected using developer tools.</div>
         <pre id="json_result_previewer"><pre>
     </section>
@@ -36,7 +36,18 @@
                     const parser = new pickleparser.Parser(buffer);
                     const obj = parser.load();
                     window.obj = obj;
-                    const replacer = (_, value) => (typeof value === 'bigint' ? value.toString() : value);
+                    const replacer = (_, value) => {
+                        if (value instanceof Map) {
+                            return Object.fromEntries(value);
+                        }
+                        if (value instanceof Set) {
+                            return Array.from(value);
+                        }
+                        if (value === 'bigint') {
+                            return value.toString();
+                        }
+                        return value;
+                    };
                     const json = JSON.stringify(obj, replacer, 4);
                     jsonResultPreviewer.innerText = json;
                 } catch (error) {
