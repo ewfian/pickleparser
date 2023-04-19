@@ -27,18 +27,18 @@ const DefualtOptions: ParserOptions = {
 };
 
 export class Parser {
+    private _options: ParserOptions;
     private _reader: Reader;
     private _setProvider: ISetProvider;
     private _dictionaryProvider: IDictionaryProvider;
 
-    options: ParserOptions;
     registry: Registry = new Registry();
 
     constructor(buffer: Uint8Array | Int8Array | Uint8ClampedArray, options?: ParserOptions) {
-        this.options = { ...DefualtOptions, ...options };
+        this._options = { ...DefualtOptions, ...options };
         this._reader = new Reader(buffer);
-        this._setProvider = SetProviderFactory(this.options.unpicklingTypeOfSet);
-        this._dictionaryProvider = DictionaryProviderFactory(this.options.unpicklingTypeOfDictionary);
+        this._setProvider = SetProviderFactory(this._options.unpicklingTypeOfSet);
+        this._dictionaryProvider = DictionaryProviderFactory(this._options.unpicklingTypeOfDictionary);
     }
 
     load() {
@@ -319,19 +319,19 @@ export class Parser {
                 // Exts
                 case OP.EXT1: {
                     const extCode = reader.byte();
-                    const cls = this.options.onExtensionLoad(extCode);
+                    const cls = this._options.onExtensionLoad(extCode);
                     stack.push(cls);
                     break;
                 }
                 case OP.EXT2: {
                     const extCode = reader.uint16();
-                    const cls = this.options.onExtensionLoad(extCode);
+                    const cls = this._options.onExtensionLoad(extCode);
                     stack.push(cls);
                     break;
                 }
                 case OP.EXT4: {
                     const extCode = reader.uint32();
-                    const cls = this.options.onExtensionLoad(extCode);
+                    const cls = this._options.onExtensionLoad(extCode);
                     stack.push(cls);
                     break;
                 }
@@ -391,13 +391,13 @@ export class Parser {
                 }
                 case OP.PERSID: {
                     const pid = reader.line();
-                    const cls = this.options.onPersistentLoad(pid);
+                    const cls = this._options.onPersistentLoad(pid);
                     stack.push(cls);
                     break;
                 }
                 case OP.BINPERSID: {
                     const pid = stack.pop();
-                    const cls = this.options.onPersistentLoad(pid);
+                    const cls = this._options.onPersistentLoad(pid);
                     stack.push(cls);
                     break;
                 }
@@ -445,7 +445,7 @@ export class Parser {
         throw new Error('Unexpected end of file.');
     }
 
-    readUint64(data: Uint8Array | Int8Array | Uint8ClampedArray) {
+    private readUint64(data: Uint8Array | Int8Array | Uint8ClampedArray) {
         if (data.length > 8) {
             throw new Error('Value too large to unpickling');
         }
@@ -458,7 +458,7 @@ export class Parser {
         return number;
     }
 
-    readUint64WithBigInt(data: Uint8Array | Int8Array | Uint8ClampedArray) {
+    private readUint64WithBigInt(data: Uint8Array | Int8Array | Uint8ClampedArray) {
         let fixedLength = 0;
         let partCount = 0;
         while (fixedLength < data.length) {
@@ -477,11 +477,11 @@ export class Parser {
         return number;
     }
 
-    resolveClass(module: string, name: string): new (...args: any[]) => any {
+    private resolveClass(module: string, name: string): new (...args: any[]) => any {
         return this.registry.resolve(module, name);
     }
 
-    newObject(cls: new (...args: any[]) => any, ...args: any[]) {
+    private newObject(cls: new (...args: any[]) => any, ...args: any[]) {
         return new cls(...args);
     }
 }
