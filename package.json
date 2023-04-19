@@ -6,6 +6,8 @@
   "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "rollup -c rollup.config.js --bundleConfigAsCjs --failAfterWarnings",
+    "build:watch": "rollup -c rollup.config.js --bundleConfigAsCjs --failAfterWarnings --watch",
+    "build:package": "rm -rf dist && npm run build",
     "test": "jest"
   },
   "bin": {
