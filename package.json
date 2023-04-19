@@ -15,7 +15,11 @@
   "keywords": [
     "pickle",
     "parser",
-    "python"
+    "python",
+    "unpickling",
+    "pure-javascript",
+    "typescript",
+    "json"
   ],
   "repository": {
     "type": "git",
