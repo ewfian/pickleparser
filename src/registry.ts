@@ -18,12 +18,16 @@ export class Registry extends Map<string, new (...args: any[]) => any> {
 
     private createNewPObject(module: string, name: string): new (...args: any[]) => any {
         const PObject = function (this: any, ...args: any[]): any {
-            Object.defineProperty(this, 'args', {
-                value: args,
-                enumerable: false,
-                configurable: false,
-                writable: false,
-            });
+            if (new.target) {
+                Object.defineProperty(this, 'args', {
+                    value: args,
+                    enumerable: false,
+                    configurable: false,
+                    writable: false,
+                });
+            } else {
+                return args;
+            }
         } as unknown as new (...args: any[]) => any;
         PObject.prototype.__module__ = module;
         PObject.prototype.__name__ = name;

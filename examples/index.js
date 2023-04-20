@@ -2,18 +2,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { Parser } from '../';
 
-class WindowsPath {
-    constructor(...args) {
-        this.path = args.join('\\');
-    }
-}
-
-class PosixPath {
-    constructor(...args) {
-        this.path = args.join('/');
-    }
-}
-
 class Document extends Map {}
 
 async function unpickle(fname) {
@@ -23,8 +11,8 @@ async function unpickle(fname) {
         unpicklingTypeOfDictionary: 'Map',
         unpicklingTypeOfSet: 'Set',
     });
-    parser.registry.register('pathlib', 'WindowsPath', WindowsPath);
-    parser.registry.register('pathlib', 'PosixPath', PosixPath);
+    parser.registry.register('pathlib', 'WindowsPath', (...args) => args.join('\\'));
+    parser.registry.register('pathlib', 'PosixPath', (...args) => args.join('/'));
     parser.registry.register('langchain.schema', 'Document', Document);
     const obj = parser.load();
     console.log(obj);

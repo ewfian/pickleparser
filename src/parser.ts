@@ -340,14 +340,14 @@ export class Parser {
                 case OP.GLOBAL: {
                     const module = reader.line();
                     const name = reader.line();
-                    const cls = this.resolveClass(module, name);
+                    const cls = this.registry.resolve(module, name);
                     stack.push(cls);
                     break;
                 }
                 case OP.STACK_GLOBAL: {
                     const name = stack.pop();
                     const module = stack.pop();
-                    const cls = this.resolveClass(module, name);
+                    const cls = this.registry.resolve(module, name);
                     stack.push(cls);
                     break;
                 }
@@ -358,8 +358,8 @@ export class Parser {
                     const name = reader.line();
                     const args = stack;
                     stack = metastack.pop();
-                    const cls = this.resolveClass(module, name);
-                    const obj = this.newObject(cls, ...args);
+                    const cls = this.registry.resolve(module, name);
+                    const obj = Reflect.construct(cls, args);
                     stack.push(obj);
                     break;
                 }
@@ -367,14 +367,14 @@ export class Parser {
                     const args = stack;
                     const cls = args.pop();
                     stack = metastack.pop();
-                    const obj = this.newObject(cls, ...args);
+                    const obj = Reflect.construct(cls, args);
                     stack.push(obj);
                     break;
                 }
                 case OP.NEWOBJ: {
                     const args = stack.pop();
                     const cls = stack.pop();
-                    const obj = this.newObject(cls, ...args);
+                    const obj = Reflect.construct(cls, args);
                     stack.push(obj);
                     break;
                 }
@@ -382,7 +382,7 @@ export class Parser {
                     const kwargs = stack.pop();
                     const args = stack.pop();
                     const cls = stack.pop();
-                    const obj = this.newObject(cls, ...args);
+                    const obj: any = Reflect.construct(cls, args);
                     if (obj.__setnewargs_ex__) {
                         obj.__setnewargs_ex__(kwargs);
                     }
@@ -404,7 +404,7 @@ export class Parser {
                 case OP.REDUCE: {
                     const args = stack.pop();
                     const func = stack.pop();
-                    stack.push(this.newObject(func, ...args));
+                    stack.push(func(...args));
                     break;
                 }
                 case OP.BUILD: {
@@ -475,13 +475,5 @@ export class Parser {
             number |= part << BigInt(partIndex * 32);
         }
         return number;
-    }
-
-    private resolveClass(module: string, name: string): new (...args: any[]) => any {
-        return this.registry.resolve(module, name);
-    }
-
-    private newObject(cls: new (...args: any[]) => any, ...args: any[]) {
-        return new cls(...args);
     }
 }
