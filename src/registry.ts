@@ -26,7 +26,17 @@ export class Registry extends Map<string, new (...args: any[]) => any> {
                     writable: false,
                 });
             } else {
-                return args;
+                const PFunction = function (this: any, ...args: any[]) {
+                    Object.defineProperty(this, 'args', {
+                        value: args,
+                        enumerable: false,
+                        configurable: false,
+                        writable: false,
+                    });
+                };
+                PFunction.prototype.__module__ = module;
+                PFunction.prototype.__name__ = name;
+                return Reflect.construct(PFunction, args);
             }
         } as unknown as new (...args: any[]) => any;
         PObject.prototype.__module__ = module;
