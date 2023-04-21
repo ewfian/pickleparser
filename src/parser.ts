@@ -34,7 +34,7 @@ export class Parser {
 
     registry: Registry = new Registry();
 
-    constructor(buffer: Uint8Array | Int8Array | Uint8ClampedArray, options?: ParserOptions) {
+    constructor(buffer: Uint8Array | Int8Array | Uint8ClampedArray, options?: Partial<ParserOptions>) {
         this._options = { ...DefualtOptions, ...options };
         this._reader = new Reader(buffer);
         this._setProvider = SetProviderFactory(this._options.unpicklingTypeOfSet);

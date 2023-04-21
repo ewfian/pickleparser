@@ -1,6 +1,8 @@
 .DS_Store
 node_modules/
 examples/*.json
+examples/*.js
+!examples/tsconfig.json
 *.pkl
 .vscode/
 .github/

@@ -41,23 +41,17 @@ $ npm install pickleparser
 ```ts
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { Parser } from '../';
+import { Parser } from 'pickleparser';
 
-async function unpickle(fname) {
+async function unpickle(fname: string) {
     const pkl = await fs.readFile(path.join(fname), 'binary');
     const buffer = Buffer.from(pkl, 'binary');
     const parser = new Parser(buffer);
-    const obj = parser.load();
-    console.log(obj);
-// => 
-// MyClass {
-//   data: 'test',
-//   set: [ false, 1, 2, 3, 'abc', null, 4294967295, 9007199254740991 ],
-//   fruits: [ 'apple', 'banana', 'cherry', 'orange' ]
-// }
+    return parser.load();
 }
 
-unpickle('index.pkl');
+const obj = unpickle('pickled.pkl');
+console.log(obj);
 ```
 
 

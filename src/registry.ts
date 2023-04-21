@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export class Registry extends Map<string, new (...args: any[]) => any> {
-    register(module: string, name: string, cls: new (...args: any[]) => any) {
+export class Registry extends Map<string, (new (...args: any[]) => any) | ((...args: any[]) => any)> {
+    register(module: string, name: string, cls: (new (...args: any[]) => any) | ((...args: any[]) => any)) {
         const id = this.getIdentity(name, module);
         if (this.has(id)) {
             throw new Error(`Module '${id}' is already registered.`);
         }
         this.set(id, cls);
     }
-    resolve(module: string, name: string): new (...args: any[]) => any {
+    resolve(module: string, name: string): (new (...args: any[]) => any) | ((...args: any[]) => any) {
         const id = this.getIdentity(name, module);
         return this.get(id) ?? this.createNewPObject(module, name);
     }
@@ -16,7 +16,7 @@ export class Registry extends Map<string, new (...args: any[]) => any> {
         return module + '.' + name;
     }
 
-    private createNewPObject(module: string, name: string): new (...args: any[]) => any {
+    private createNewPObject(module: string, name: string): (new (...args: any[]) => any) | ((...args: any[]) => any) {
         const PObject = function (this: any, ...args: any[]): any {
             if (new.target) {
                 Object.defineProperty(this, 'args', {
@@ -38,7 +38,7 @@ export class Registry extends Map<string, new (...args: any[]) => any> {
                 PFunction.prototype.__name__ = name;
                 return Reflect.construct(PFunction, args);
             }
-        } as unknown as new (...args: any[]) => any;
+        } as unknown as (new (...args: any[]) => any) | ((...args: any[]) => any);
         PObject.prototype.__module__ = module;
         PObject.prototype.__name__ = name;
         PObject.prototype.__setnewargs_ex__ = function (kwargs: any) {
