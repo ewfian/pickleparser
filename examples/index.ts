@@ -17,7 +17,7 @@ async function unpickle(fname: string) {
     return parser.load();
 }
 
-const obj = unpickle('wiki.pkl');
+const obj = await unpickle('wiki.pkl');
 console.log(obj);
 // const codePoints = Array.from(obj)
 //     .map((v) => v.codePointAt(0).toString(16))

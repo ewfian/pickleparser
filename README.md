@@ -50,7 +50,7 @@ async function unpickle(fname: string) {
     return parser.load();
 }
 
-const obj = unpickle('pickled.pkl');
+const obj = await unpickle('pickled.pkl');
 console.log(obj);
 ```
 
