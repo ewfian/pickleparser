@@ -38,7 +38,7 @@ $ npm install pickleparser
 ## Usage
 
 ### Node.js
-```ts
+```typescript
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { Parser } from 'pickleparser';
@@ -57,7 +57,7 @@ console.log(obj);
 
 ### Browser
 
-```js
+```javascript
 const fileSelector = document.getElementById('file_selector');
 const jsonResultPreviewer = document.getElementById('json_result_previewer');
 
