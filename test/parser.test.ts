@@ -1,14 +1,15 @@
 import { OP } from '../src/opcode';
 import { Parser } from '../src/parser';
+import { BufferReader } from '../src/reader';
 
 describe('Parser', () => {
     describe('#constructor', () => {
         it('can be constructed', () => {
             const parser = new Parser();
-            expect(() => parser).toBeDefined();
+            expect(parser).toBeDefined();
         });
 
-        it('has correctly defalut options', () => {
+        it('has correct defalut options', () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const parser: any = new Parser();
             expect(parser._options.unpicklingTypeOfSet).toEqual('array');
@@ -68,6 +69,15 @@ describe('Parser', () => {
             });
             expect(parser._options.unpicklingTypeOfSet).toEqual('Set');
             expect(parser._options.unpicklingTypeOfDictionary).toEqual('Map');
+        });
+    });
+
+    describe('#read', () => {
+        it('correctly read data', () => {
+            const parser = new Parser();
+            const pkl = new Uint8Array([OP.PROTO, 4, OP.BININT1, 3, OP.STOP]);
+            const reader = new BufferReader(pkl);
+            expect(parser.read(reader)).toEqual(3);
         });
     });
 
