@@ -46,8 +46,8 @@ import { Parser } from 'pickleparser';
 async function unpickle(fname: string) {
     const pkl = await fs.readFile(path.join(fname), 'binary');
     const buffer = Buffer.from(pkl, 'binary');
-    const parser = new Parser(buffer);
-    return parser.load();
+    const parser = new Parser();
+    return parser.parse(buffer);
 }
 
 const obj = await unpickle('pickled.pkl');
@@ -67,8 +67,8 @@ fileSelector.addEventListener('change', function (e) {
 
     reader.onload = function (event) {
         const buffer = new Uint8Array(event.target.result);
-        const parser = new pickleparser.Parser(buffer);
-        const obj = parser.load();
+        const parser = new pickleparser.Parser();
+        const obj = parser.parse(buffer);
         const json = JSON.stringify(obj, null, 4);
         jsonResultPreviewer.innerText = json;
     }

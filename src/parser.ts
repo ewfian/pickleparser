@@ -1,48 +1,72 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { OP } from './opcode';
-import { Reader } from './reader';
-import { Registry } from './registry';
+import { IReader, BufferReader, readUint64, readUint64WithBigInt } from './reader';
 import { ISetProvider, SetProviderFactory } from './setProvider';
 import { IDictionaryProvider, DictionaryProviderFactory } from './dictionaryProvider';
+import { createPObject } from './PObject';
 
 export type UnpicklingTypeOfSet = 'array' | 'Set';
 export type UnpicklingTypeOfDictionary = 'object' | 'Map';
 
+export interface NameResolver {
+    resolve(module: string, name: string): (new (...args: any[]) => any) | ((...args: any[]) => any);
+}
+export interface PersistentResolver {
+    resolve(pid: string): any;
+}
+export interface ExtensionResolver {
+    resolve(extCode: number): any;
+}
+
 export interface ParserOptions {
-    onPersistentLoad: (pid: string) => any;
-    onExtensionLoad: (extCode: number) => any;
+    nameResolver: NameResolver;
+    persistentResolver: PersistentResolver;
+    extensionResolver: ExtensionResolver;
     unpicklingTypeOfSet: UnpicklingTypeOfSet;
     unpicklingTypeOfDictionary: UnpicklingTypeOfDictionary;
 }
 
 const DefualtOptions: ParserOptions = {
-    onPersistentLoad(pid) {
-        throw new Error(`Unregistered persistent id: \`${pid}\`.`);
+    nameResolver: {
+        resolve: (module, name) => createPObject(module, name),
     },
-    onExtensionLoad(extCode) {
-        throw new Error(`Unregistered extension code: \`${extCode.toString(16)}\`.`);
+    persistentResolver: {
+        resolve: (pid) => {
+            throw new Error(`Unregistered persistent id: \`${pid}\`.`);
+        },
+    },
+    extensionResolver: {
+        resolve: (extCode) => {
+            throw new Error(`Unregistered extension code: \`${extCode.toString(16)}\`.`);
+        },
     },
     unpicklingTypeOfSet: 'array',
     unpicklingTypeOfDictionary: 'object',
 };
 
 export class Parser {
-    private _options: ParserOptions;
-    private _reader: Reader;
-    private _setProvider: ISetProvider;
-    private _dictionaryProvider: IDictionaryProvider;
+    private readonly _options: ParserOptions;
+    private readonly _nameResolver: NameResolver;
+    private readonly _persistentResolver: PersistentResolver;
+    private readonly _extensionResolver: ExtensionResolver;
+    private readonly _setProvider: ISetProvider;
+    private readonly _dictionaryProvider: IDictionaryProvider;
 
-    registry: Registry = new Registry();
-
-    constructor(buffer: Uint8Array | Int8Array | Uint8ClampedArray, options?: Partial<ParserOptions>) {
+    constructor(options?: Partial<ParserOptions>) {
         this._options = { ...DefualtOptions, ...options };
-        this._reader = new Reader(buffer);
+        this._nameResolver = this._options.nameResolver;
+        this._persistentResolver = this._options.persistentResolver;
+        this._extensionResolver = this._options.extensionResolver;
         this._setProvider = SetProviderFactory(this._options.unpicklingTypeOfSet);
         this._dictionaryProvider = DictionaryProviderFactory(this._options.unpicklingTypeOfDictionary);
     }
 
-    load() {
-        const reader = this._reader;
+    parse<T>(buffer: Uint8Array | Int8Array | Uint8ClampedArray): T {
+        const reader = new BufferReader(buffer);
+        return this.read(reader);
+    }
+
+    read<T>(reader: IReader): T {
         let stack: any[] = [];
         const metastack: any[] = [];
         const memo = new Map();
@@ -167,14 +191,14 @@ export class Parser {
                 case OP.LONG1: {
                     const length = reader.byte();
                     const data = reader.bytes(length);
-                    const number = this.readUint64(data);
+                    const number = readUint64(data);
                     stack.push(number);
                     break;
                 }
                 case OP.LONG4: {
                     const length = reader.uint32();
                     const data = reader.bytes(length);
-                    const number = this.readUint64WithBigInt(data);
+                    const number = readUint64WithBigInt(data);
                     stack.push(number);
                     break;
                 }
@@ -319,19 +343,19 @@ export class Parser {
                 // Exts
                 case OP.EXT1: {
                     const extCode = reader.byte();
-                    const cls = this._options.onExtensionLoad(extCode);
+                    const cls = this._extensionResolver.resolve(extCode);
                     stack.push(cls);
                     break;
                 }
                 case OP.EXT2: {
                     const extCode = reader.uint16();
-                    const cls = this._options.onExtensionLoad(extCode);
+                    const cls = this._extensionResolver.resolve(extCode);
                     stack.push(cls);
                     break;
                 }
                 case OP.EXT4: {
                     const extCode = reader.uint32();
-                    const cls = this._options.onExtensionLoad(extCode);
+                    const cls = this._extensionResolver.resolve(extCode);
                     stack.push(cls);
                     break;
                 }
@@ -340,14 +364,14 @@ export class Parser {
                 case OP.GLOBAL: {
                     const module = reader.line();
                     const name = reader.line();
-                    const cls = this.registry.resolve(module, name);
+                    const cls = this._nameResolver.resolve(module, name);
                     stack.push(cls);
                     break;
                 }
                 case OP.STACK_GLOBAL: {
                     const name = stack.pop();
                     const module = stack.pop();
-                    const cls = this.registry.resolve(module, name);
+                    const cls = this._nameResolver.resolve(module, name);
                     stack.push(cls);
                     break;
                 }
@@ -358,7 +382,7 @@ export class Parser {
                     const name = reader.line();
                     const args = stack;
                     stack = metastack.pop();
-                    const cls = this.registry.resolve(module, name);
+                    const cls = this._nameResolver.resolve(module, name);
                     const obj = Reflect.construct(cls, args);
                     stack.push(obj);
                     break;
@@ -391,13 +415,13 @@ export class Parser {
                 }
                 case OP.PERSID: {
                     const pid = reader.line();
-                    const cls = this._options.onPersistentLoad(pid);
+                    const cls = this._persistentResolver.resolve(pid);
                     stack.push(cls);
                     break;
                 }
                 case OP.BINPERSID: {
                     const pid = stack.pop();
-                    const cls = this._options.onPersistentLoad(pid);
+                    const cls = this._persistentResolver.resolve(pid);
                     stack.push(cls);
                     break;
                 }
@@ -443,37 +467,5 @@ export class Parser {
             }
         }
         throw new Error('Unexpected end of file.');
-    }
-
-    private readUint64(data: Uint8Array | Int8Array | Uint8ClampedArray) {
-        if (data.length > 8) {
-            throw new Error('Value too large to unpickling');
-        }
-        // Padding to 8 bytes
-        const buffer = new ArrayBuffer(8);
-        const uint8 = new Uint8Array(buffer);
-        uint8.set(data);
-        const subReader = new Reader(uint8);
-        const number = subReader.uint64();
-        return number;
-    }
-
-    private readUint64WithBigInt(data: Uint8Array | Int8Array | Uint8ClampedArray) {
-        let fixedLength = 0;
-        let partCount = 0;
-        while (fixedLength < data.length) {
-            fixedLength += 4;
-            partCount += 1;
-        }
-        const buffer = new ArrayBuffer(fixedLength);
-        const uint8 = new Uint8Array(buffer);
-        uint8.set(data);
-        const view = new DataView(buffer, 0, fixedLength);
-        let number = BigInt(0);
-        for (let partIndex = 0; partIndex < partCount; partIndex++) {
-            const part = BigInt(view.getUint32(partIndex * 4, true));
-            number |= part << BigInt(partIndex * 32);
-        }
-        return number;
     }
 }

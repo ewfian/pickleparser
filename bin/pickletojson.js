@@ -6,8 +6,8 @@ const { Parser } = require('../dist/index');
 const argv = process.argv;
 const pkl = fs.readFileSync(path.join(argv[2]), 'binary');
 const buffer = Buffer.from(pkl, 'binary');
-const parser = new Parser(buffer);
-const obj = parser.load();
+const parser = new Parser();
+const obj = parser.parse(buffer);
 
 const replacer = (_, value) => {
     if (value instanceof Map) {

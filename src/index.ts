@@ -1,2 +1,3 @@
 export { Parser } from './parser';
-export { Reader } from './reader';
+export { BufferReader } from './reader';
+export { NameRegistry } from './registry';

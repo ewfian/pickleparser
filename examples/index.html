@@ -33,8 +33,8 @@
             reader.onload = function (event) {
                 try {
                     const buffer = new Uint8Array(event.target.result);
-                    const parser = new pickleparser.Parser(buffer);
-                    const obj = parser.load();
+                    const parser = new pickleparser.Parser();
+                    const obj = parser.parse(buffer);
                     window.obj = obj;
                     const replacer = (_, value) => {
                         if (value instanceof Map) {
@@ -53,7 +53,6 @@
                 } catch (error) {
                     jsonResultPreviewer.innerText = error;
                 }
-
             }
 
             reader.readAsArrayBuffer(file);
