@@ -16,7 +16,7 @@ const replacer = (_, value) => {
     if (value instanceof Set) {
         return Array.from(value);
     }
-    if (value === 'bigint') {
+    if (typeof value === 'bigint') {
         return value.toString();
     }
     return value;
