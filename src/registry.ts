@@ -11,6 +11,7 @@ export class NameRegistry implements NameResolver {
             throw new Error(`'${fqn}' is already registered.`);
         }
         this._registry.set(fqn, func);
+        return this;
     }
 
     resolve(module: string, name: string) {

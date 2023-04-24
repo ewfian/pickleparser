@@ -8,10 +8,10 @@ async function unpickle(fname: string) {
     const pkl = await fs.readFile(path.join(fname), 'binary');
     const buffer = Buffer.from(pkl, 'binary');
 
-    const registry = new NameRegistry();
-    registry.register('pathlib', 'WindowsPath', (...args) => args.join('\\'));
-    registry.register('pathlib', 'PosixPath', (...args) => args.join('/'));
-    registry.register('langchain.schema', 'Document', Document);
+    const registry = new NameRegistry()
+        .register('pathlib', 'WindowsPath', (...args) => args.join('\\'))
+        .register('pathlib', 'PosixPath', (...args) => args.join('/'))
+        .register('langchain.schema', 'Document', Document);
 
     const parser = new Parser({
         nameResolver: registry,
