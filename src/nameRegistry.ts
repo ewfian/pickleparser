@@ -6,7 +6,7 @@ export class NameRegistry implements NameResolver {
     protected readonly _registry = new Map<string, (new (...args: any[]) => any) | ((...args: any[]) => any)>();
 
     register(module: string, name: string, func: (new (...args: any[]) => any) | ((...args: any[]) => any)) {
-        const fqn = this.getFullyQualifiedName(name, module);
+        const fqn = NameRegistry.getFullyQualifiedName(name, module);
         if (this._registry.has(fqn)) {
             throw new Error(`'${fqn}' is already registered.`);
         }
@@ -15,7 +15,7 @@ export class NameRegistry implements NameResolver {
     }
 
     resolve(module: string, name: string) {
-        const fqn = this.getFullyQualifiedName(name, module);
+        const fqn = NameRegistry.getFullyQualifiedName(name, module);
         return this._registry.get(fqn) ?? this.onMissingName(module, name);
     }
 
@@ -23,7 +23,7 @@ export class NameRegistry implements NameResolver {
         return createPObject(module, name);
     }
 
-    protected getFullyQualifiedName(module: string, name: string) {
+    static getFullyQualifiedName(module: string, name: string) {
         return module + '.' + name;
     }
 }

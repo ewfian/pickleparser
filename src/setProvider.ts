@@ -4,19 +4,19 @@ import { UnpicklingTypeOfSet } from './parser';
 export interface ISetProvider {
     create(): any;
     createWithItems(value: Iterable<unknown>): any;
-    addMethod(set: any, value: Iterable<unknown>): void;
+    addMethod(set: any, value: unknown): void;
 }
 const ArraySetProvider: ISetProvider = {
     create: () => [],
-    createWithItems: (value: Iterable<unknown>) => value,
-    addMethod: function (set: any[], value: Iterable<unknown>): void {
+    createWithItems: (value) => Array.from(value),
+    addMethod: function (set: any[], value): void {
         set.push(value);
     },
 };
 const StdandardSetProvider: ISetProvider = {
     create: () => new Set(),
-    createWithItems: (value: Iterable<unknown>) => new Set(value),
-    addMethod: function (set: Set<unknown>, value: Iterable<unknown>): void {
+    createWithItems: (value) => new Set(value),
+    addMethod: function (set: Set<unknown>, value): void {
         set.add(value);
     },
 };

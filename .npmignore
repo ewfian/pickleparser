@@ -6,3 +6,4 @@ examples/*.js
 *.pkl
 .vscode/
 .github/
+coverage/

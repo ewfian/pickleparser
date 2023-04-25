@@ -5,3 +5,4 @@ examples/*.js
 !examples/tsconfig.json
 dist/
 *.pkl
+coverage/
