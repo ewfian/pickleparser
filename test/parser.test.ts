@@ -1,5 +1,5 @@
 import { OP } from '../src/opcode';
-import { Parser } from '../src/parser';
+import { Parser, ParserOptions } from '../src/parser';
 import { BufferReader } from '../src/reader';
 
 describe('Parser', () => {
@@ -10,30 +10,28 @@ describe('Parser', () => {
         });
 
         it('has correct defalut options', () => {
+            const parser = new Parser();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const parser: any = new Parser();
-            expect(parser._options.unpicklingTypeOfSet).toEqual('array');
-            expect(parser._options.unpicklingTypeOfDictionary).toEqual('object');
+            const options: ParserOptions = (parser as any)._options;
+            expect(options.unpicklingTypeOfSet).toEqual('array');
+            expect(options.unpicklingTypeOfDictionary).toEqual('object');
 
             const [module, name] = ['myModule', 'myName'];
-            const pobj = parser._options.nameResolver.resolve(module, name);
+            const pobj = options.nameResolver.resolve(module, name);
             expect(pobj.prototype).toHaveProperty('__module__', module);
             expect(pobj.prototype).toHaveProperty('__name__', name);
 
-            const pid = 5;
-            expect(() => parser._options.persistentResolver.resolve(pid)).toThrow(
-                `Unregistered persistent id: \`${pid}\`.`,
-            );
+            const pid = '5';
+            expect(() => options.persistentResolver.resolve(pid)).toThrow(`Unregistered persistent id: \`${pid}\`.`);
 
             const extCode = 3;
-            expect(() => parser._options.extensionResolver.resolve(extCode)).toThrow(
+            expect(() => options.extensionResolver.resolve(extCode)).toThrow(
                 `Unregistered extension code: \`${extCode.toString(16)}\`.`,
             );
         });
 
         it('correctly load Resolvers', () => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const parser: any = new Parser({
+            const parser = new Parser({
                 nameResolver: {
                     resolve(module, name) {
                         return () => [module, name];
@@ -50,25 +48,29 @@ describe('Parser', () => {
                     },
                 },
             });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const options: ParserOptions = (parser as any)._options;
 
             const [module, name] = ['myModule', 'myName'];
-            expect(parser._options.nameResolver.resolve(module, name)()).toEqual([module, name]);
+            expect((options.nameResolver.resolve(module, name) as () => [string, string])()).toEqual([module, name]);
 
-            const pid = 5;
-            expect(parser._options.persistentResolver.resolve(pid)).toEqual(pid);
+            const pid = '5';
+            expect(options.persistentResolver.resolve(pid)).toEqual(pid);
 
             const extCode = 3;
-            expect(parser._options.extensionResolver.resolve(extCode)).toEqual(extCode);
+            expect(options.extensionResolver.resolve(extCode)).toEqual(extCode);
         });
 
         it('correctly load options', () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const parser: any = new Parser({
+            const parser = new Parser({
                 unpicklingTypeOfSet: 'Set',
                 unpicklingTypeOfDictionary: 'Map',
             });
-            expect(parser._options.unpicklingTypeOfSet).toEqual('Set');
-            expect(parser._options.unpicklingTypeOfDictionary).toEqual('Map');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const options: ParserOptions = (parser as any)._options;
+            expect(options.unpicklingTypeOfSet).toEqual('Set');
+            expect(options.unpicklingTypeOfDictionary).toEqual('Map');
         });
     });
 

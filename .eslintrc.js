@@ -9,9 +9,10 @@ module.exports = {
                 ecmaVersion: 'latest',
                 sourceType: 'module',
             },
-            plugins: ['@typescript-eslint', 'prettier'],
+            plugins: ['@typescript-eslint', 'prettier', 'eslint-plugin-tsdoc'],
             rules: {
                 'prettier/prettier': 'error',
+                'tsdoc/syntax': 'error',
             },
         },
     ],

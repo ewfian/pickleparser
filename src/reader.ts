@@ -117,7 +117,7 @@ export class BufferReader implements IReader {
     }
 
     line() {
-        const index = this._buffer.indexOf(0x0a /** \n */, this._position);
+        const index = this._buffer.indexOf(0x0a /** LF(\\n) */, this._position);
         if (index == -1) {
             throw new Error('Could not find end of line.');
         }
