@@ -5,5 +5,14 @@ class MyClass:
         self.fruits = ['apple', 'banana', 'cherry']
 
 
+class Reduce:
+    def __reduce__(self):
+        return (self.__class__, tuple(['379', 'acd']))
+
+
 def klass():
     return MyClass()
+
+
+def reduce():
+    return Reduce()
