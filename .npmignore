@@ -7,3 +7,4 @@ examples/*.js
 .vscode/
 .github/
 coverage/
+__pycache__

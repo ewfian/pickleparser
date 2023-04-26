@@ -20,6 +20,7 @@ describe('Parser', () => {
             const pobj = options.nameResolver.resolve(module, name);
             expect(pobj.prototype).toHaveProperty('__module__', module);
             expect(pobj.prototype).toHaveProperty('__name__', name);
+            expect(pobj.name).toEqual('PObject');
 
             const pid = '5';
             expect(() => options.persistentResolver.resolve(pid)).toThrow(`Unregistered persistent id: \`${pid}\`.`);

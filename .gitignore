@@ -6,3 +6,4 @@ examples/*.js
 dist/
 *.pkl
 coverage/
+__pycache__
