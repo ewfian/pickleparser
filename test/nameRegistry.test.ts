@@ -31,6 +31,22 @@ describe('NameRegistry', () => {
         });
     });
 
+    describe('#resolve', () => {
+        it('returns PObject if not found', () => {
+            const registry = new NameRegistry();
+            const resolved = registry.resolve('module', 'name');
+            expect(resolved.name).toEqual('PObject');
+        });
+
+        it('returns registed object', () => {
+            class C {}
+            const registry = new NameRegistry();
+            registry.register('module', 'name', C);
+            const resolved = registry.resolve('module', 'name');
+            expect(resolved).toStrictEqual(C);
+        });
+    });
+
     describe('#getFullyQualifiedName', () => {
         it.each([
             [['', ''], '.'],

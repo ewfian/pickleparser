@@ -1,6 +1,7 @@
 import { Parser } from '../../src/parser';
 import { basic } from './basic';
 import { caller } from './_caller';
+import { NameRegistry } from '../../src/nameRegistry';
 
 describe('basic', () => {
     it.each(Object.keys(basic))('correctly unpickled (%s)', async (func) => {
@@ -48,6 +49,28 @@ describe('klass', () => {
                     (...args) =>
                         args.join(','),
             },
+        }).parse(data);
+        expect(obj).toStrictEqual(expected);
+    });
+
+    it('with NameRegistry', async () => {
+        class MyClass {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            array: any[] = [];
+            fruits: string[] = [];
+            str: string | undefined;
+        }
+
+        const expected = new MyClass();
+        expected.array = [1, true, false, null, 4294967295];
+        expected.fruits = ['apple', 'banana', 'cherry'];
+        expected.str = 'test';
+
+        const registry = new NameRegistry().register('klass', 'MyClass', MyClass);
+
+        const data = await caller('klass', 'klass');
+        const obj = new Parser({
+            nameResolver: registry,
         }).parse(data);
         expect(obj).toStrictEqual(expected);
     });
