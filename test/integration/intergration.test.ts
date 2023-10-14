@@ -85,3 +85,76 @@ describe('long', () => {
         expect(obj.toString()).toStrictEqual(expected);
     });
 });
+
+describe('portocal5', () => {
+    it('correctly unpickl bytearray8', async () => {
+        const expected = Buffer.from([1, 2, 3]);
+        const data = await caller('portocal5', 'bytearray8');
+        const obj = new Parser().parse<Buffer>(data);
+        expect(obj).toStrictEqual(expected);
+    });
+
+    it('correctly unpickl next_buffer', async () => {
+        const expected = 123;
+        const data = await caller('portocal5', 'next_buffer');
+        const obj = new Parser({
+            buffers: (function* () {
+                yield expected;
+            })(),
+        }).parse(data);
+        expect(obj).toStrictEqual(expected);
+    });
+
+    it('correctly unpickl multi_next_buffer', async () => {
+        const expected = [123, 'str'];
+        const data = await caller('portocal5', 'multi_next_buffer');
+        const obj = new Parser({
+            buffers: expected.values(),
+        }).parse(data);
+        expect(obj).toStrictEqual(expected);
+    });
+
+    it('correctly unpickl readonly_buffer', async () => {
+        const expected = 123;
+        const data = await caller('portocal5', 'readonly_buffer');
+        const obj = new Parser({
+            buffers: (function* () {
+                yield expected;
+            })(),
+        }).parse(data);
+        expect(obj).toStrictEqual(expected);
+    });
+
+    it('correctly unpickl next_buffer_and_readonly_buffer', async () => {
+        const expected = [123, [1, '22', null]];
+        const data = await caller('portocal5', 'next_buffer_and_readonly_buffer');
+        const obj = new Parser({
+            buffers: expected.values(),
+        }).parse(data);
+        expect(obj).toStrictEqual(expected);
+    });
+
+    it('correctly unpickl next_buffer_with_reduce_ex', async () => {
+        class mybytearray {
+            public args: number[];
+            constructor(args: number[]) {
+                this.args = args;
+            }
+            static __reduce_ex__(args: number[]) {
+                return new mybytearray(args);
+            }
+        }
+        const externalData = [1, 2, 3, 4];
+        const expected = new mybytearray(externalData);
+        const registry = new NameRegistry();
+        registry.register('portocal5', 'mybytearray', mybytearray.__reduce_ex__);
+        const data = await caller('portocal5', 'next_buffer_with_reduce_ex');
+        const obj = new Parser({
+            nameResolver: registry,
+            buffers: (function* () {
+                yield externalData;
+            })(),
+        }).parse<mybytearray>(data);
+        expect(obj).toStrictEqual(expected);
+    });
+});
