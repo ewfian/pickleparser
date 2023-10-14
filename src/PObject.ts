@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export function createPObject(module: string, name: string): (new (...args: any[]) => any) | ((...args: any[]) => any) {
+export function createPObject<T extends (new (...args: any[]) => any) | ((...args: any[]) => any)>(
+    module: string,
+    name: string,
+): T {
     const PObject = function (this: any, ...args: any[]): any {
         if (new.target) {
             Object.defineProperty(this, 'args', {
@@ -21,10 +24,10 @@ export function createPObject(module: string, name: string): (new (...args: any[
             PFunction.prototype.__name__ = name;
             return Reflect.construct(PFunction, args);
         }
-    } as unknown as (new (...args: any[]) => any) | ((...args: any[]) => any);
+    } as T;
     PObject.prototype.__module__ = module;
     PObject.prototype.__name__ = name;
-    PObject.prototype.__setnewargs_ex__ = function (kwargs: any) {
+    PObject.prototype.__setnewargs_ex__ = function (...kwargs: any) {
         Object.defineProperty(this, 'kwargs', {
             value: kwargs,
             enumerable: false,
