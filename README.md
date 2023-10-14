@@ -9,7 +9,7 @@ A pure Javascript implemented parser for [Python pickle format](https://docs.pyt
 
 ## Features
 
-* Fully supports [Pickle protocol version 4](https://peps.python.org/pep-3154/) opcodes.
+* Fully supports Pickle protocol version 0~5 opcodes.
 * Pure Typescript implemented.
 * Provides `ParserOptions` to customize Unpickling.
 * Supports Browser.
