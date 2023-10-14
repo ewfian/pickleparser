@@ -33,7 +33,10 @@
             reader.onload = function (event) {
                 try {
                     const buffer = new Uint8Array(event.target.result);
-                    const parser = new pickleparser.Parser();
+                    const parser = new pickleparser.Parser({
+                        unpicklingTypeOfSet: 'Set',
+                        unpicklingTypeOfDictionary: 'Map',
+                    });
                     const obj = parser.parse(buffer);
                     window.obj = obj;
                     const replacer = (_, value) => {
@@ -45,6 +48,9 @@
                         }
                         if (typeof value === 'bigint') {
                             return value.toString();
+                        }
+                        if (value?.constructor?.name === 'PFunction') {
+                            return value.args;
                         }
                         return value;
                     };
