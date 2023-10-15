@@ -53,8 +53,8 @@ describe('klass', () => {
             nameResolver: {
                 resolve:
                     () =>
-                        (...args) =>
-                            args.join(','),
+                    (...args) =>
+                        args.join(','),
             },
         }).parse(data);
         expect(obj).toStrictEqual(expected);
