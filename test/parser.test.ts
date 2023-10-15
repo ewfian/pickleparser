@@ -124,5 +124,17 @@ describe('Parser', () => {
             const pkl = new Uint8Array([OP.PROTO, 5, OP.NEXT_BUFFER, OP.NEXT_BUFFER, OP.STOP]);
             expect(() => parser.parse(pkl)).toThrow('not enough out-of-band buffers');
         });
+
+        it('throws errors w/ unsupported OP code', () => {
+            const parser = new Parser();
+            const pkl = new Uint8Array([OP.READONLY_BUFFER + 1]);
+            expect(() => parser.parse(pkl)).toThrow("Unsupported opcode '153'.");
+        });
+
+        it('throws errors w/ unsupported protocol', () => {
+            const parser = new Parser();
+            const pkl = new Uint8Array([OP.PROTO, 6, OP.STOP]);
+            expect(() => parser.parse(pkl)).toThrow("Unsupported protocol version '6'.");
+        });
     });
 });

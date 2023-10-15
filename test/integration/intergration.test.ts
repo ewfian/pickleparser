@@ -1,11 +1,18 @@
 import { Parser } from '../../src/parser';
 import { basic } from './basic';
-import { caller } from './_caller';
+import { PROTOCOL, PROTOCOLS, caller } from './_caller';
 import { NameRegistry } from '../../src/nameRegistry';
 
-describe('basic', () => {
-    it.each(Object.keys(basic))('correctly unpickled (%s)', async (func) => {
-        const data = await caller('basic', func);
+describe('basic with version', () => {
+    it.each(
+        Object.keys(basic).reduce((a: Array<[string, PROTOCOL]>, c) => {
+            PROTOCOLS.forEach((p) => {
+                a.push([c, p]);
+            });
+            return a;
+        }, []),
+    )('correctly unpickled (%s) with protocol %s', async (func, protocol) => {
+        const data = await caller('basic', func, protocol);
         const expected = basic[func]();
         const obj = new Parser().parse(data);
         expect(obj).toStrictEqual(expected);
@@ -46,8 +53,8 @@ describe('klass', () => {
             nameResolver: {
                 resolve:
                     () =>
-                    (...args) =>
-                        args.join(','),
+                        (...args) =>
+                            args.join(','),
             },
         }).parse(data);
         expect(obj).toStrictEqual(expected);
@@ -156,5 +163,92 @@ describe('protocol5', () => {
             })(),
         }).parse<mybytearray>(data);
         expect(obj).toStrictEqual(expected);
+    });
+});
+
+describe('dict', () => {
+    it.each(PROTOCOLS)('correctly unpickl emptydict', async (protocol) => {
+        const data = await caller('dict', 'emptydict', protocol);
+        const obj = new Parser().parse(data);
+        expect(obj).toStrictEqual({});
+    });
+
+    it.each(PROTOCOLS)('correctly unpickl emptydict with Map (protocol: %d)', async (protocol) => {
+        const data = await caller('dict', 'emptydict', protocol);
+        const obj = new Parser({
+            unpicklingTypeOfDictionary: 'Map',
+        }).parse(data);
+        expect(obj).toStrictEqual(new Map());
+    });
+
+    it.each(PROTOCOLS)('correctly unpickl dict w/ data', async (protocol) => {
+        const data = await caller('dict', 'dict1', protocol);
+        const obj = new Parser().parse(data);
+        expect(obj).toStrictEqual({
+            key: 'foo',
+        });
+    });
+
+    it.each(PROTOCOLS)('correctly unpickl dict w/ multidata', async (protocol) => {
+        const data = await caller('dict', 'dict2', protocol);
+        const obj = new Parser().parse(data);
+        expect(obj).toStrictEqual({
+            key: 'foo',
+            key2: 123,
+            key3: {},
+        });
+    });
+});
+
+describe('set', () => {
+    it.each(['0', '1', '2'] as const)('correctly unpickl emptyset with p/ 0,1,2', async (protocol) => {
+        const registry = new NameRegistry().register('__builtin__', 'set', Array.from);
+        const data = await caller('set', 'emptyset', protocol);
+        const obj = new Parser({
+            nameResolver: registry,
+        }).parse(data);
+        expect(obj).toStrictEqual([]);
+    });
+
+    it('correctly unpickl emptyset with p/ 3', async () => {
+        const registry = new NameRegistry().register('builtins', 'set', Array.from);
+        const data = await caller('set', 'emptyset', '3');
+        const obj = new Parser({
+            nameResolver: registry,
+            unpicklingTypeOfSet: 'Set',
+        }).parse(data);
+        expect(obj).toStrictEqual([]);
+    });
+
+    it('correctly unpickl emptyset with p/ 5', async () => {
+        const data = await caller('set', 'emptyset', '5');
+        const obj = new Parser({
+            unpicklingTypeOfSet: 'Set',
+        }).parse(data);
+        expect(obj).toStrictEqual(new Set());
+    });
+
+    it('correctly unpickl emptyset with p/ 5 and array', async () => {
+        const data = await caller('set', 'emptyset', '5');
+        const obj = new Parser({
+            unpicklingTypeOfSet: 'array',
+        }).parse(data);
+        expect(obj).toStrictEqual([]);
+    });
+
+    it('correctly unpickl set with data with p/ 5', async () => {
+        const data = await caller('set', 'set1', '5');
+        const obj = new Parser({
+            unpicklingTypeOfSet: 'Set',
+        }).parse(data);
+        expect(obj).toStrictEqual(new Set(['apple', 'banana', 'cherry']));
+    });
+
+    it('correctly unpickl frozenset', async () => {
+        const data = await caller('set', 'frozenset1');
+        const obj = new Parser({
+            unpicklingTypeOfSet: 'Set',
+        }).parse(data);
+        expect(obj).toStrictEqual(new Set([1, 2]));
     });
 });

@@ -7,7 +7,6 @@ export interface IReader {
     int32(): number;
     uint32(): number;
     uint64(): number;
-    float32(): number;
     float64(): number;
     skip(offset: number): void;
     string(size: number, encoding: Encoding): string;
@@ -88,16 +87,10 @@ export class BufferReader implements IReader {
         return number;
     }
 
-    float32() {
-        const position = this.position;
-        this.skip(4);
-        return this._dataView.getFloat32(position, true);
-    }
-
     float64() {
         const position = this.position;
         this.skip(8);
-        return this._dataView.getFloat64(position, true);
+        return this._dataView.getFloat64(position, false);
     }
 
     skip(offset: number) {

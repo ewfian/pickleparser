@@ -107,14 +107,8 @@ describe('BufferReader', () => {
             consoleWarnMock.mockRestore();
         });
 
-        it('read float32', () => {
-            const buffer = new Uint8Array([0xdb, 0x0f, 0x49, 0x40]);
-            const reader = new BufferReader(buffer);
-            expect(reader.float32()).toBeCloseTo(Math.PI, 6);
-        });
-
         it('read float64', () => {
-            const buffer = new Uint8Array([0x18, 0x2d, 0x44, 0x54, 0xfb, 0x21, 0x09, 0x40]);
+            const buffer = new Uint8Array([0x40, 0x09, 0x21, 0xfb, 0x54, 0x44, 0x2d, 0x18]);
             const reader = new BufferReader(buffer);
             expect(reader.float64()).toBeCloseTo(Math.PI, 12);
         });
