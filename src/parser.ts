@@ -24,6 +24,7 @@ export interface ParserOptions {
     extensionResolver: ExtensionResolver;
     unpicklingTypeOfSet: UnpicklingTypeOfSet;
     unpicklingTypeOfDictionary: UnpicklingTypeOfDictionary;
+    buffers?: Iterator<any>;
 }
 
 const DefualtOptions: ParserOptions = {
@@ -51,6 +52,7 @@ export class Parser {
     private readonly _extensionResolver: ExtensionResolver;
     private readonly _setProvider: ISetProvider;
     private readonly _dictionaryProvider: IDictionaryProvider;
+    private readonly _buffers?: Iterator<any>;
 
     constructor(options?: Partial<ParserOptions>) {
         this._options = { ...DefualtOptions, ...options };
@@ -59,6 +61,7 @@ export class Parser {
         this._extensionResolver = this._options.extensionResolver;
         this._setProvider = SetProviderFactory(this._options.unpicklingTypeOfSet);
         this._dictionaryProvider = DictionaryProviderFactory(this._options.unpicklingTypeOfDictionary);
+        this._buffers = options?.buffers;
     }
 
     parse<T>(buffer: Uint8Array | Int8Array | Uint8ClampedArray): T {
@@ -72,14 +75,14 @@ export class Parser {
         const memo = new Map();
         while (reader.hasNext()) {
             const opcode = reader.byte();
-            // console.log(`${(reader.position - 1).toString()} ${opcode}`);
+            // console.log(`${((reader as any)._position - 1).toString()} ${opcode}`);
             // console.log('metastack:', metastack, '\nstack:', stack);
             // console.log('\nmemo:', Array.from(memo.entries()));
             switch (opcode) {
                 // Structural
                 case OP.PROTO: {
                     const version = reader.byte();
-                    if (version > 4) {
+                    if (version > 5) {
                         throw new Error(`Unsupported protocol version '${version}'.`);
                     }
                     break;
@@ -461,6 +464,26 @@ export class Parser {
                     }
                     break;
                 }
+
+                case OP.BYTEARRAY8:
+                    stack.push(reader.bytes(reader.uint64()));
+                    break;
+
+                case OP.NEXT_BUFFER: {
+                    if (this._buffers == null) {
+                        throw new Error('pickle stream refers to out-of-band data but no *buffers* argument was given');
+                    }
+                    const next = this._buffers.next();
+                    if (next.done) {
+                        throw new Error('not enough out-of-band buffers');
+                    }
+                    stack.push(next.value);
+                    break;
+                }
+
+                case OP.READONLY_BUFFER:
+                    stack.push(stack.pop());
+                    break;
 
                 default:
                     throw new Error(`Unsupported opcode '${opcode}'.`);

@@ -67,6 +67,6 @@
 |  STACK_GLOBAL       |  \x93   |  147   |  ✅        |  Protocol 4   |
 |  MEMOIZE            |  \x94   |  148   |  ✅        |  Protocol 4   |
 |  FRAME              |  \x95   |  149   |  ✅        |  Protocol 4   |
-|  BYTEARRAY8         |  \x96   |  150   |  ❌        |  Protocol 5   |
-|  NEXT_BUFFER        |  \x97   |  151   |  ❌        |  Protocol 5   |
-|  READONLY_BUFFER    |  \x98   |  152   |  ❌        |  Protocol 5   |
+|  BYTEARRAY8         |  \x96   |  150   |  ✅        |  Protocol 5   |
+|  NEXT_BUFFER        |  \x97   |  151   |  ✅        |  Protocol 5   |
+|  READONLY_BUFFER    |  \x98   |  152   |  ✅        |  Protocol 5   |

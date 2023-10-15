@@ -95,5 +95,34 @@ describe('Parser', () => {
             const pkl = new Uint8Array([OP.PROTO, 4, OP.BININT1, 3, OP.STOP]);
             expect(parser.parse(pkl)).toEqual(3);
         });
+
+        it('correctly load buffers', () => {
+            const expected = [123, 'str'];
+            const parser = new Parser({
+                buffers: (function* () {
+                    yield expected;
+                })(),
+            });
+            const pkl = new Uint8Array([OP.PROTO, 5, OP.NEXT_BUFFER, OP.STOP]);
+            expect(parser.parse(pkl)).toStrictEqual(expected);
+        });
+
+        it('throws errors if buffers not provided', () => {
+            const parser = new Parser();
+            const pkl = new Uint8Array([OP.PROTO, 5, OP.NEXT_BUFFER, OP.STOP]);
+            expect(() => parser.parse(pkl)).toThrow(
+                'pickle stream refers to out-of-band data but no *buffers* argument was given',
+            );
+        });
+
+        it('throws errors if not enough buffers', () => {
+            const parser = new Parser({
+                buffers: (function* () {
+                    yield 1;
+                })(),
+            });
+            const pkl = new Uint8Array([OP.PROTO, 5, OP.NEXT_BUFFER, OP.NEXT_BUFFER, OP.STOP]);
+            expect(() => parser.parse(pkl)).toThrow('not enough out-of-band buffers');
+        });
     });
 });
