@@ -75,7 +75,7 @@ export class Parser {
         const memo = new Map();
         while (reader.hasNext()) {
             const opcode = reader.byte();
-            // console.log(`${((reader as any)._position - 1).toString()} ${opcode}`);
+            // console.log(`${((reader as BufferReader).position - 1).toString()} ${opcode}`);
             // console.log('metastack:', metastack, '\nstack:', stack);
             // console.log('\nmemo:', Array.from(memo.entries()));
             switch (opcode) {
