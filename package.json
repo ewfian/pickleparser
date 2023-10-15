@@ -10,7 +10,7 @@
     "build:package": "rm -rf dist && npm run build",
     "test": "jest --collect-coverage",
     "lint": "eslint src/**/*.ts test/**/*.ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build:package"
   },
   "bin": {
     "pickletojson": "bin/pickletojson.js",
