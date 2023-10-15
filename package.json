@@ -9,11 +9,12 @@
     "build:watch": "npm run build -- --watch",
     "build:package": "rm -rf dist && npm run build",
     "test": "jest --collect-coverage",
-    "lint": "eslint src/**/*.ts test/**/*.ts"
+    "lint": "eslint src/**/*.ts test/**/*.ts",
+    "prepublishOnly": "npm run build"
   },
   "bin": {
-    "pickletojson": "./bin/pickletojson.js",
-    "pickleparser": "./bin/pickletojson.js"
+    "pickletojson": "bin/pickletojson.js",
+    "pickleparser": "bin/pickletojson.js"
   },
   "keywords": [
     "pickle",
