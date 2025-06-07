@@ -7,3 +7,4 @@ dist/
 *.pkl
 coverage/
 __pycache__
+.idea
