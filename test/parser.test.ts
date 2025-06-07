@@ -136,5 +136,54 @@ describe('Parser', () => {
             const pkl = new Uint8Array([OP.PROTO, 6, OP.STOP]);
             expect(() => parser.parse(pkl)).toThrow("Unsupported protocol version '6'.");
         });
+
+        it('should correctly parse a dictionary into a Map with non-string keys', () => {
+            // This simulates a pickle stream for a dictionary: {1: "one", null: "is null"}
+            // using protocol 2.
+            // The stream is: PROTO 2, MARK, BININT1 1, BINUNICODE "one", NONE, BINUNICODE "is null", DICT, STOP
+            const pkl = new Uint8Array([
+                OP.PROTO,
+                2, // Protocol header
+                OP.MARK, // Mark for dictionary items
+                OP.BININT1,
+                1, // Key: 1 (integer)
+                OP.BINUNICODE,
+                3,
+                0,
+                0,
+                0,
+                0x6f,
+                0x6e,
+                0x65, // Value: "one"
+                OP.NONE, // Key: null
+                OP.BINUNICODE,
+                7,
+                0,
+                0,
+                0,
+                0x69,
+                0x73,
+                0x20,
+                0x6e,
+                0x75,
+                0x6c,
+                0x6c, // Value: "is null"
+                OP.DICT, // Build dictionary from items
+                OP.STOP, // Stop
+            ]);
+
+            // Configure the parser to produce Maps
+            const parser = new Parser({
+                unpicklingTypeOfDictionary: 'Map',
+            });
+
+            const result = parser.parse<Map<unknown, unknown>>(pkl);
+
+            const expected = new Map<unknown, unknown>();
+            expected.set(1, 'one');
+            expected.set(null, 'is null');
+
+            expect(result).toStrictEqual(expected);
+        });
     });
 });
