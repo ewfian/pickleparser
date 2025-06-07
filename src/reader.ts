@@ -1,4 +1,4 @@
-type Encoding = 'ascii' | 'utf-8';
+export type Encoding = 'ascii' | 'utf-8';
 
 export interface IReader {
     byte(): number;
