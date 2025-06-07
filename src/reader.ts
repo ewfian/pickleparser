@@ -1,3 +1,5 @@
+import { BITS_PER_BYTE, Sizes } from './sizes';
+
 export type Encoding = 'ascii' | 'utf-8';
 
 export interface IReader {
@@ -38,7 +40,7 @@ export class BufferReader implements IReader {
 
     byte() {
         const position = this._position;
-        this.skip(1);
+        this.skip(Sizes.Byte);
         return this._dataView.getUint8(position);
     }
 
@@ -50,30 +52,30 @@ export class BufferReader implements IReader {
 
     uint16() {
         const position = this.position;
-        this.skip(2);
+        this.skip(Sizes.UInt16);
         return this._dataView.getUint16(position, true);
     }
 
     int32() {
         const position = this.position;
-        this.skip(4);
+        this.skip(Sizes.Int32);
         return this._dataView.getInt32(position, true);
     }
 
     uint32() {
         const position = this.position;
-        this.skip(4);
+        this.skip(Sizes.UInt32);
         return this._dataView.getUint32(position, true);
     }
 
     uint64() {
         const position = this.position;
-        this.skip(8);
+        this.skip(Sizes.UInt64);
         // split 64-bit number into two 32-bit parts
         const left = this._dataView.getUint32(position, true);
-        const right = this._dataView.getUint32(position + 4, true);
+        const right = this._dataView.getUint32(position + Sizes.UInt32, true);
         // combine the two 32-bit values
-        const number = left + 2 ** 32 * right;
+        const number = left + 2 ** (Sizes.UInt32 * BITS_PER_BYTE) * right;
         if (!Number.isSafeInteger(number)) {
             console.warn(number, 'exceeds MAX_SAFE_INTEGER. Precision may be lost');
         }
@@ -89,7 +91,7 @@ export class BufferReader implements IReader {
 
     float64() {
         const position = this.position;
-        this.skip(8);
+        this.skip(Sizes.Float64);
         return this._dataView.getFloat64(position, false);
     }
 
@@ -116,7 +118,7 @@ export class BufferReader implements IReader {
         }
         const size = index - this._position;
         const text = this.string(size, 'ascii');
-        this.skip(1);
+        this.skip(Sizes.Byte);
         return text;
     }
 
@@ -126,11 +128,11 @@ export class BufferReader implements IReader {
 }
 
 export function readUint64(data: Uint8Array | Int8Array | Uint8ClampedArray) {
-    if (data.length > 8) {
+    if (data.length > Sizes.UInt64) {
         throw new Error('Value too large to unpickling');
     }
     // Padding to 8 bytes
-    const buffer = new ArrayBuffer(8);
+    const buffer = new ArrayBuffer(Sizes.UInt64);
     const uint8 = new Uint8Array(buffer);
     uint8.set(data);
     const subReader = new BufferReader(uint8);
@@ -142,7 +144,7 @@ export function readUint64WithBigInt(data: Uint8Array | Int8Array | Uint8Clamped
     let fixedLength = 0;
     let partCount = 0;
     while (fixedLength < data.length) {
-        fixedLength += 4;
+        fixedLength += Sizes.UInt32;
         partCount += 1;
     }
     const buffer = new ArrayBuffer(fixedLength);
@@ -151,8 +153,8 @@ export function readUint64WithBigInt(data: Uint8Array | Int8Array | Uint8Clamped
     const view = new DataView(buffer, 0, fixedLength);
     let number = BigInt(0);
     for (let partIndex = 0; partIndex < partCount; partIndex++) {
-        const part = BigInt(view.getUint32(partIndex * 4, true));
-        number |= part << BigInt(partIndex * 32);
+        const part = BigInt(view.getUint32(partIndex * Sizes.UInt32, true));
+        number |= part << BigInt(partIndex * Sizes.UInt32 * BITS_PER_BYTE);
     }
     return number;
 }
