@@ -14,6 +14,7 @@ export interface IWriter {
 
     /** Returns the complete buffer containing all written data */
     getBuffer(): Uint8Array;
+    encodeUtf8(text: string): Uint8Array;
 }
 
 /**
@@ -83,6 +84,10 @@ export class BufferWriter implements IWriter {
 
     public getBuffer(): Uint8Array {
         return this.#buffer.subarray(0, this.#position);
+    }
+
+    public encodeUtf8(text: string): Uint8Array {
+        return this.#utf8Encoder.encode(text);
     }
 
     private ensureCapacity(requiredBytes: number): void {
