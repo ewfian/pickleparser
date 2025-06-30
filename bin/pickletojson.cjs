@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 var fs = require('fs');
 var path = require('path');
-const { Parser } = require('../dist/index');
+const { Parser } = require('../dist/index.cjs');
 
 const argv = process.argv;
 const pkl = fs.readFileSync(path.join(argv[2]), 'binary');
