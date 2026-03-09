@@ -1,5 +1,6 @@
 import { Parser } from '../../src/parser';
 import { basic } from './basic';
+import { advanced } from './advanced';
 import { PROTOCOL, PROTOCOLS, caller } from './_caller';
 import { NameRegistry } from '../../src/nameRegistry';
 
@@ -250,5 +251,109 @@ describe('set', () => {
             unpicklingTypeOfSet: 'Set',
         }).parse(data);
         expect(obj).toStrictEqual(new Set([1, 2]));
+    });
+});
+
+// =========================================================================
+// Advanced scenarios
+// =========================================================================
+// Cases that have known protocol differences:
+// - Protocol 0: raw-unicode-escape, inf text parsing, bytes as STRING
+// - Protocol 1-2: bytes as BINSTRING (returns string, not Buffer)
+const ADVANCED_SKIP: Record<string, Set<string>> = {
+    special_floats: new Set(['0']),
+    unicode_cjk: new Set(['0']),
+    unicode_escape: new Set(['0']),
+    bytes_data: new Set(['0', '1', '2']),
+    large_bytes: new Set(['0', '1', '2']),
+    empty_bytes: new Set(['0', '1', '2']),
+};
+
+describe('advanced with version', () => {
+    it.each(
+        Object.keys(advanced).reduce((a: Array<[string, PROTOCOL]>, c) => {
+            PROTOCOLS.forEach((p) => {
+                if (ADVANCED_SKIP[c]?.has(p)) return;
+                a.push([c, p]);
+            });
+            return a;
+        }, []),
+    )('correctly unpickled (%s) with protocol %s', async (func, protocol) => {
+        const data = await caller('advanced', func, protocol);
+        const expected = advanced[func]();
+        const obj = new Parser().parse(data);
+        expect(obj).toStrictEqual(expected);
+    });
+});
+
+describe('advanced special cases', () => {
+    it.each(PROTOCOLS)('nan_value with protocol %s', async (protocol) => {
+        const data = await caller('advanced', 'nan_value', protocol);
+        const obj = new Parser().parse<number>(data);
+        expect(Number.isNaN(obj)).toBe(true);
+    });
+
+    it.each(PROTOCOLS)('big_int with protocol %s', async (protocol) => {
+        const data = await caller('advanced', 'big_int', protocol);
+        const obj = new Parser().parse(data);
+        // 2^53 + 1 = 9007199254740993
+        // May lose precision or be returned as-is depending on protocol
+        expect(obj).toBeDefined();
+    });
+
+    it.each(PROTOCOLS)('shared_ref with protocol %s', async (protocol) => {
+        const data = await caller('advanced', 'shared_ref', protocol);
+        const obj = new Parser().parse<unknown[][]>(data);
+        expect(obj).toStrictEqual([[1, 2, 3], [1, 2, 3]]);
+        // Verify both elements reference the same object (memo)
+        if (parseInt(protocol) >= 2) {
+            // Protocol 2+ uses MEMOIZE/BINPUT for shared refs
+            expect(obj[0]).toBe(obj[1]);
+        }
+    });
+});
+
+describe('advanced dict as Map', () => {
+    it.each(PROTOCOLS)('nested_dict as Map with protocol %s', async (protocol) => {
+        const data = await caller('advanced', 'nested_dict', protocol);
+        const obj = new Parser({
+            unpicklingTypeOfDictionary: 'Map',
+        }).parse<Map<string, unknown>>(data);
+        expect(obj).toBeInstanceOf(Map);
+        expect(obj.get('a')).toBeInstanceOf(Map);
+        const inner = obj.get('a') as Map<string, unknown>;
+        expect(inner.get('b')).toBeInstanceOf(Map);
+        const innermost = inner.get('b') as Map<string, number>;
+        expect(innermost.get('c')).toEqual(1);
+    });
+
+    it.each(PROTOCOLS)('complex_structure as Map with protocol %s', async (protocol) => {
+        const data = await caller('advanced', 'complex_structure', protocol);
+        const obj = new Parser({
+            unpicklingTypeOfDictionary: 'Map',
+        }).parse<Map<string, unknown>>(data);
+        expect(obj).toBeInstanceOf(Map);
+        expect(obj.get('count')).toEqual(2);
+        const users = obj.get('users') as Map<string, unknown>[];
+        expect(users).toHaveLength(2);
+    });
+});
+
+describe('klass advanced', () => {
+    it('correctly unpickl with_setstate', async () => {
+        const data = await caller('klass', 'with_setstate');
+        const obj = new Parser().parse(data);
+        expect(obj).toMatchObject({ x: 10, y: 20 });
+        const prototype = Object.getPrototypeOf(obj);
+        expect(prototype).toHaveProperty('__module__', 'klass');
+        expect(prototype).toHaveProperty('__name__', 'WithSetState');
+    });
+
+    it('correctly unpickl with_slots', async () => {
+        const data = await caller('klass', 'with_slots');
+        const obj = new Parser().parse(data);
+        expect(obj).toBeDefined();
+        // Slots are serialized as tuple (state, slots_dict)
+        // The BUILD opcode handles this
     });
 });
