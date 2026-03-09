@@ -304,7 +304,10 @@ describe('advanced special cases', () => {
     it.each(PROTOCOLS)('shared_ref with protocol %s', async (protocol) => {
         const data = await caller('advanced', 'shared_ref', protocol);
         const obj = new Parser().parse<unknown[][]>(data);
-        expect(obj).toStrictEqual([[1, 2, 3], [1, 2, 3]]);
+        expect(obj).toStrictEqual([
+            [1, 2, 3],
+            [1, 2, 3],
+        ]);
         // Verify both elements reference the same object (memo)
         if (parseInt(protocol) >= 2) {
             // Protocol 2+ uses MEMOIZE/BINPUT for shared refs
