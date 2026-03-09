@@ -1,6 +1,9 @@
 export const advanced: Record<string, () => unknown> = {
     nested_list() {
-        return [[1, 2], [3, [4, 5]]];
+        return [
+            [1, 2],
+            [3, [4, 5]],
+        ];
     },
     nested_dict() {
         return { a: { b: { c: 1 } } };
@@ -68,7 +71,10 @@ export const advanced: Record<string, () => unknown> = {
         return [42];
     },
     nested_tuple() {
-        return [[1, 2], [3, [4, 5]]];
+        return [
+            [1, 2],
+            [3, [4, 5]],
+        ];
     },
     bool_values() {
         return [true, false, true];
