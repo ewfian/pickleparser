@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
 
 // https://github.com/python/cpython/blob/f329a8bc1e57e454852f8887df6267b42047cd1b/Lib/pickle.py#L105
