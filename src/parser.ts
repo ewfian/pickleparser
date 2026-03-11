@@ -297,7 +297,7 @@ export class Parser {
                     stack = metastack.pop();
                     const dict = this._dictionaryProvider.create();
                     for (let i = 0; i < items.length; i += 2) {
-                        dict[items[i]] = items[i + 1];
+                        this._dictionaryProvider.setMethod(dict, items[i], items[i + 1]);
                     }
                     stack.push(dict);
                     break;

@@ -294,11 +294,13 @@ describe('advanced special cases', () => {
     });
 
     it.each(PROTOCOLS)('big_int with protocol %s', async (protocol) => {
+        const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
         const data = await caller('advanced', 'big_int', protocol);
-        const obj = new Parser().parse(data);
-        // 2^53 + 1 = 9007199254740993
-        // May lose precision or be returned as-is depending on protocol
-        expect(obj).toBeDefined();
+        const obj = new Parser().parse<number>(data);
+        // 2^53 + 1 = 9007199254740993, but exceeds MAX_SAFE_INTEGER
+        // Parser returns 9007199254740992 (precision lost)
+        expect(obj).toEqual(9007199254740992);
+        consoleWarnMock.mockRestore();
     });
 
     it.each(PROTOCOLS)('shared_ref with protocol %s', async (protocol) => {
@@ -354,9 +356,14 @@ describe('klass advanced', () => {
 
     it('correctly unpickl with_slots', async () => {
         const data = await caller('klass', 'with_slots');
-        const obj = new Parser().parse(data);
-        expect(obj).toBeDefined();
-        // Slots are serialized as tuple (state, slots_dict)
-        // The BUILD opcode handles this
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const obj = new Parser().parse<any>(data);
+        // __slots__ classes serialize as BUILD with (state, slots_dict) tuple
+        // Current parser treats it as array index assignment via Object.assign
+        expect(obj[0]).toBeNull();
+        expect(obj[1]).toStrictEqual({ a: 1, b: 'two' });
+        const prototype = Object.getPrototypeOf(obj);
+        expect(prototype).toHaveProperty('__module__', 'klass');
+        expect(prototype).toHaveProperty('__name__', 'WithSlots');
     });
 });
