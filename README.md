@@ -4,81 +4,49 @@
 [![Demo](https://img.shields.io/badge/online-demo-blue.svg)](https://ewfian.github.io/pickleparser/)
 [![License](https://img.shields.io/github/license/ewfian/pickleparser)](https://github.com/ewfian/pickleparser)
 
-A pure Javascript implemented parser for [Python pickle format](https://docs.python.org/3.11/library/pickle.html)
-
+A pure TypeScript parser for the [Python pickle format](https://docs.python.org/3/library/pickle.html). Supports protocol 0 through 5.
 
 ## Features
 
-* Fully supports Pickle protocol version 0~5 opcodes.
-* Pure Typescript implemented.
-* Provides `ParserOptions` to customize Unpickling.
-* Supports Browser.
-* Supports Node.js.
-* Provides tool to convert pickle file to JSON.
-
-## Supported Protocol Version
-
-* Pickle protocol version 0
-* Pickle protocol version 1
-* [Pickle protocol version 2 (Python 2.3)](https://peps.python.org/pep-0307/)
-* Pickle protocol version 3 (Python 3.0)
-* [Pickle protocol version 4 (Python 3.4)](https://peps.python.org/pep-3154/)
-* [Pickle protocol version 5 (Python 3.8)](https://peps.python.org/pep-0574/)
-
-For more details, see: [Supported Opcodes](./SUPPORTED_OPCODES.md)
+* Pickle protocol version 0~5, all opcodes supported
+* Pure TypeScript, zero dependencies
+* Works in Node.js and browsers
+* Customizable via `ParserOptions` (name resolution, dict/set types, out-of-band buffers)
+* CLI tool to convert pickle files to JSON
 
 ## Demo
-[Online Pickle to JSON Convertor](https://ewfian.github.io/pickleparser/)
+[Online Pickle to JSON Converter](https://ewfian.github.io/pickleparser/)
 
 ## Installation
 
 ```sh
-$ npm install pickleparser
+npm install pickleparser
 ```
 
 ## Usage
 
 ### Node.js
+
 ```typescript
 import fs from 'node:fs/promises';
-import path from 'node:path';
 import { Parser } from 'pickleparser';
 
-async function unpickle(fname: string) {
-    const pkl = await fs.readFile(path.join(fname), 'binary');
-    const buffer = Buffer.from(pkl, 'binary');
-    const parser = new Parser();
-    return parser.parse(buffer);
-}
-
-const obj = await unpickle('pickled.pkl');
+const buffer = await fs.readFile('data.pkl');
+const obj = new Parser().parse(buffer);
 console.log(obj);
 ```
 
-
 ### Browser
 
-```javascript
-const fileSelector = document.getElementById('file_selector');
-const jsonResultPreviewer = document.getElementById('json_result_previewer');
-
-fileSelector.addEventListener('change', function (e) {
-    const file = fileSelector.files[0];
-    const reader = new FileReader();
-
-    reader.onload = function (event) {
-        const buffer = new Uint8Array(event.target.result);
-        const parser = new pickleparser.Parser();
-        const obj = parser.parse(buffer);
-        const json = JSON.stringify(obj, null, 4);
-        jsonResultPreviewer.innerText = json;
-    }
-
-    reader.readAsArrayBuffer(file);
-});
+```html
+<script src="https://unpkg.com/pickleparser/dist/index.js"></script>
+<script>
+const buffer = new Uint8Array(arrayBuffer);
+const obj = new pickleparser.Parser().parse(buffer);
+</script>
 ```
 
-### Terminal
+### CLI
 
 ```bash
 npx pickleparser file.pkl file.json
@@ -87,6 +55,77 @@ npm i pickleparser -g
 pickletojson file.pkl file.json
 ```
 
+## API
+
+### `new Parser(options?)`
+
+```typescript
+import { Parser } from 'pickleparser';
+
+const parser = new Parser({
+    unpicklingTypeOfDictionary: 'Map',
+    unpicklingTypeOfSet: 'Set',
+});
+const result = parser.parse<MyType>(buffer);
+```
+
+### ParserOptions
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `unpicklingTypeOfDictionary` | `'object' \| 'Map'` | `'object'` | Python `dict` maps to JS plain object or `Map` |
+| `unpicklingTypeOfSet` | `'array' \| 'Set'` | `'array'` | Python `set` maps to JS array or `Set` |
+| `nameResolver` | `NameResolver` | built-in | Resolve Python classes/functions by module and name |
+| `persistentResolver` | `PersistentResolver` | throws | Resolve persistent object references |
+| `extensionResolver` | `ExtensionResolver` | throws | Resolve extension registry codes |
+| `buffers` | `Iterator<any>` | `undefined` | Out-of-band buffers for protocol 5 |
+
+### NameResolver
+
+Register custom constructors to control how Python classes are instantiated:
+
+```typescript
+import { Parser, NameRegistry } from 'pickleparser';
+
+class MyClass {
+    x: number = 0;
+    y: number = 0;
+}
+
+const registry = new NameRegistry()
+    .register('mymodule', 'MyClass', MyClass);
+
+const obj = new Parser({ nameResolver: registry }).parse<MyClass>(buffer);
+```
+
+## Type Mapping
+
+| Python | JavaScript | Notes |
+|--------|-----------|-------|
+| `dict` | `{}` or `Map` | controlled by `unpicklingTypeOfDictionary` |
+| `list` | `Array` | |
+| `tuple` | `Array` | |
+| `set`, `frozenset` | `Array` or `Set` | controlled by `unpicklingTypeOfSet` |
+| `str` | `string` | |
+| `bytes`, `bytearray` | `Buffer` (Node.js) | |
+| `int` | `number` | |
+| `int` (> 2^53) | `number` with precision loss, or `BigInt` via LONG4 | |
+| `float` | `number` | including `inf`, `-inf`, `nan` |
+| `bool` | `boolean` | |
+| `None` | `null` | |
+
+## Supported Protocols
+
+| Protocol | Python Version | PEP |
+|----------|---------------|-----|
+| 0 | all | |
+| 1 | all | |
+| 2 | 2.3+ | [PEP 307](https://peps.python.org/pep-0307/) |
+| 3 | 3.0+ | |
+| 4 | 3.4+ | [PEP 3154](https://peps.python.org/pep-3154/) |
+| 5 | 3.8+ | [PEP 574](https://peps.python.org/pep-0574/) |
+
+For opcode-level details, see [Supported Opcodes](./SUPPORTED_OPCODES.md).
 
 ## License
 

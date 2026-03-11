@@ -3,33 +3,334 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css" />
-    <title>Online Pickle to JSON Convertor</title>
+    <title>Pickle Parser - Online Pickle to JSON Converter</title>
+    <meta name="description"
+        content="Convert Python pickle (.pkl) files to JSON online. Pure browser-based parser, no server upload needed. Supports pickle protocol 0-5.">
+    <link rel="canonical" href="https://ewfian.github.io/pickleparser/">
+    <meta property="og:title" content="Pickle Parser - Online Pickle to JSON Converter">
+    <meta property="og:description"
+        content="Convert Python pickle files to JSON in your browser. No upload, no server, pure JavaScript.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ewfian.github.io/pickleparser/">
+    <meta name="twitter:card" content="summary">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RZGBZX174E"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-RZGBZX174E');
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            color: #1f2328;
+            background: #f6f8fa;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #656d76;
+            margin-bottom: 32px;
+        }
+
+        .subtitle a {
+            color: #0969da;
+            text-decoration: none;
+        }
+
+        .subtitle a:hover {
+            text-decoration: underline;
+        }
+
+        .drop-zone {
+            border: 2px dashed #d0d7de;
+            border-radius: 12px;
+            padding: 48px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            background: #fff;
+            margin-bottom: 24px;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: #0969da;
+            background: #ddf4ff;
+        }
+
+        .drop-zone p {
+            font-size: 16px;
+            color: #656d76;
+            margin-bottom: 12px;
+        }
+
+        .drop-zone .icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+
+        .drop-zone input[type="file"] {
+            display: none;
+        }
+
+        .drop-zone .btn {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #0969da;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .drop-zone .btn:hover {
+            background: #0860ca;
+        }
+
+        .file-info {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: #fff;
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .file-info.visible {
+            display: flex;
+        }
+
+        .file-info .name {
+            font-weight: 500;
+        }
+
+        .file-info .size {
+            color: #656d76;
+        }
+
+        .file-info .status {
+            margin-left: auto;
+            color: #1a7f37;
+            font-weight: 500;
+        }
+
+        .file-info .status.error {
+            color: #cf222e;
+        }
+
+        .tip {
+            font-size: 13px;
+            color: #1f2328;
+            margin-top: 16px;
+            padding: 10px 14px;
+            background: #ddf4ff;
+            border: 1px solid #54aeff44;
+            border-radius: 6px;
+        }
+
+        .result-container {
+            display: none;
+        }
+
+        .result-container.visible {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .result-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .copy-btn {
+            padding: 4px 12px;
+            font-size: 12px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            color: #1f2328;
+        }
+
+        .copy-btn:hover {
+            background: #f3f4f6;
+        }
+
+        pre {
+            background: #fff;
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            padding: 16px;
+            overflow: auto;
+            max-height: 600px;
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .error-box {
+            display: none;
+            padding: 12px 16px;
+            background: #ffebe9;
+            border: 1px solid #cf222e33;
+            border-radius: 8px;
+            color: #cf222e;
+            font-size: 14px;
+            margin-bottom: 24px;
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+            white-space: pre-wrap;
+        }
+
+        .error-box.visible {
+            display: block;
+        }
+
+        .about {
+            font-size: 14px;
+            color: #656d76;
+            margin-bottom: 24px;
+        }
+
+        .about ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .about li::before {
+            content: "✓ ";
+            color: #1a7f37;
+            font-weight: 600;
+        }
+
+        .about li {
+            margin-bottom: 4px;
+        }
+
+        .about code {
+            background: #eff1f3;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+    </style>
 </head>
 
 <body>
-    <section>
-        <a class="github-fork-ribbon" href="https://github.com/ewfian/pickleparser" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
-        <h1>Pickle Parser Demo</h1>
-        <div>
-            <span>Select a pickle file: </span>
+    <a class="github-fork-ribbon" href="https://github.com/ewfian/pickleparser" data-ribbon="Fork me on GitHub"
+        title="Fork me on GitHub">Fork me on GitHub</a>
+
+    <div class="container">
+        <h1>Pickle Parser</h1>
+        <p class="subtitle">Online Python pickle to JSON converter &mdash;
+            powered by <a href="https://www.npmjs.com/package/pickleparser">pickleparser</a>
+        </p>
+
+        <div class="about">
+            <ul>
+                <li>Supports pickle protocol 0 through 5</li>
+                <li>Everything runs in your browser. Your file is never uploaded to any server.</li>
+                <li>Install via npm: <code>npm install pickleparser</code></li>
+            </ul>
+        </div>
+
+        <div class="drop-zone" id="drop_zone">
+            <div class="icon">&#128230;</div>
+            <p>Drag &amp; drop a <code>.pkl</code> file here</p>
+            <span class="btn">or choose file</span>
             <input type="file" id="file_selector">
         </div>
-        <hr />
-        <div>Tips: The converted object will be mounted as `window.obj`, which can be inspected using developer tools.</div>
-        <pre id="json_result_previewer"><pre>
-    </section>
+
+        <div class="file-info" id="file_info">
+            <span class="name" id="file_name"></span>
+            <span class="size" id="file_size"></span>
+            <span class="status" id="file_status"></span>
+        </div>
+
+        <div class="error-box" id="error_box"></div>
+
+        <div class="result-container" id="result_container">
+            <div class="result-header">
+                <h2>JSON Output</h2>
+                <button class="copy-btn" id="copy_btn">Copy</button>
+            </div>
+            <pre id="json_result"></pre>
+            <p class="tip">The parsed object is also available as <code>window.obj</code> in the browser console.</p>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/pickleparser/dist/index.js"></script>
     <script>
+        const dropZone = document.getElementById('drop_zone');
         const fileSelector = document.getElementById('file_selector');
-        const jsonResultPreviewer = document.getElementById('json_result_previewer');
+        const fileInfo = document.getElementById('file_info');
+        const fileName = document.getElementById('file_name');
+        const fileSize = document.getElementById('file_size');
+        const fileStatus = document.getElementById('file_status');
+        const errorBox = document.getElementById('error_box');
+        const resultContainer = document.getElementById('result_container');
+        const jsonResult = document.getElementById('json_result');
+        const copyBtn = document.getElementById('copy_btn');
 
-        fileSelector.addEventListener('change', function (e) {
-            const file = fileSelector.files[0];
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function showError(msg) {
+            errorBox.textContent = msg;
+            errorBox.classList.add('visible');
+            resultContainer.classList.remove('visible');
+            fileStatus.textContent = 'Error';
+            fileStatus.className = 'status error';
+        }
+
+        function parseFile(file) {
+            errorBox.classList.remove('visible');
+            resultContainer.classList.remove('visible');
+
+            fileName.textContent = file.name;
+            fileSize.textContent = formatSize(file.size);
+            fileStatus.textContent = 'Parsing...';
+            fileStatus.className = 'status';
+            fileInfo.classList.add('visible');
+
             const reader = new FileReader();
-
             reader.onload = function (event) {
                 try {
                     const buffer = new Uint8Array(event.target.result);
@@ -39,30 +340,54 @@
                     });
                     const obj = parser.parse(buffer);
                     window.obj = obj;
+
                     const replacer = (_, value) => {
-                        if (value instanceof Map) {
-                            return Object.fromEntries(value);
-                        }
-                        if (value instanceof Set) {
-                            return Array.from(value);
-                        }
-                        if (typeof value === 'bigint') {
-                            return value.toString();
-                        }
-                        if (value?.constructor?.name === 'PFunction') {
-                            return value.args;
-                        }
+                        if (value instanceof Map) return Object.fromEntries(value);
+                        if (value instanceof Set) return Array.from(value);
+                        if (typeof value === 'bigint') return value.toString();
+                        if (value?.constructor?.name === 'PFunction') return value.args;
                         return value;
                     };
-                    const json = JSON.stringify(obj, replacer, 4);
-                    jsonResultPreviewer.innerText = json;
-                } catch (error) {
-                    jsonResultPreviewer.innerText = error;
-                }
-            }
 
+                    const json = JSON.stringify(obj, replacer, 4);
+                    jsonResult.textContent = json;
+                    resultContainer.classList.add('visible');
+                    fileStatus.textContent = 'OK';
+                } catch (error) {
+                    showError(error.message || String(error));
+                }
+            };
             reader.readAsArrayBuffer(file);
+        }
+
+        // Click to select
+        dropZone.addEventListener('click', () => fileSelector.click());
+        fileSelector.addEventListener('change', () => {
+            if (fileSelector.files.length) parseFile(fileSelector.files[0]);
+        });
+
+        // Drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) parseFile(e.dataTransfer.files[0]);
+        });
+
+        // Copy button
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(jsonResult.textContent).then(() => {
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+            });
         });
     </script>
 </body>
+
 </html>
