@@ -636,10 +636,7 @@ describe('Parser', () => {
                     OP.STOP,
                 ),
             );
-            // DICT uses dict[key] = value (not setMethod), so for Map provider
-            // the created Map won't have .set called via DICT opcode
-            // DICT opcode uses direct property assignment: dict[items[i]] = items[i+1]
-            expect(result).toBeDefined();
+            expect(result).toStrictEqual(new Map([['k', 'v']]));
         });
     });
 
@@ -889,7 +886,7 @@ describe('Parser', () => {
             expect(result).toBeDefined();
             // PObject stores kwargs via __setnewargs_ex__
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            expect((result as any).kwargs).toBeDefined();
+            expect((result as any).kwargs).toStrictEqual([{ opt: 1 }]);
         });
     });
 
